@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>部门功能 - 云创电商</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2E7DF6;
+            --primary-light: #5B9DFE;
+            --primary-dark: #1E5FC7;
+            --accent-yellow: #FFD93D;
+            --accent-orange: #FF8C42;
+            --accent-green: #6BCB77;
+            --accent-pink: #FF6B9D;
+            --bg-primary: #F8FAFF;
+            --bg-white: #FFFFFF;
+            --bg-card: #FFFFFF;
+            --text-primary: #1A1A2E;
+            --text-secondary: #4A4A68;
+            --text-light: #8A8AA3;
+            --border: #E8ECF4;
+            --shadow-sm: 0 2px 8px rgba(46, 125, 246, 0.08);
+            --shadow-md: 0 8px 24px rgba(46, 125, 246, 0.12);
+            --shadow-lg: 0 16px 48px rgba(46, 125, 246, 0.16);
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
+            --disabled-bg: #F5F5F5;
+            --disabled-text: #BFBFBF;
+            --disabled-border: #D9D9D9;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* 装饰性背景元素 */
+        .bg-decoration {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .bg-decoration-1 {
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, var(--accent-yellow) 0%, var(--accent-orange) 100%);
+            top: -100px;
+            right: -100px;
+        }
+
+        .bg-decoration-2 {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--accent-green) 100%);
+            bottom: 10%;
+            left: -100px;
+        }
+
+        /* 顶部导航 */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            height: 72px;
+            padding: 0 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(46, 125, 246, 0.3);
+        }
+
+        .logo-text {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-item {
+            padding: 10px 20px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: var(--radius-sm);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            color: var(--primary);
+            background: rgba(46, 125, 246, 0.08);
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+            background: linear-gradient(135deg, rgba(46, 125, 246, 0.12) 0%, rgba(46, 125, 246, 0.05) 100%);
+            font-weight: 600;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .login-btn {
+            padding: 12px 28px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: #fff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(46, 125, 246, 0.35);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(46, 125, 246, 0.45);
+        }
+
+        .login-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* 用户信息区域 */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-name {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, rgba(46, 125, 246, 0.1) 0%, rgba(107, 203, 119, 0.1) 100%);
+            border: 1px solid var(--primary-light);
+            border-radius: var(--radius-sm);
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .user-name::before {
+            content: '👤';
+            font-size: 16px;
+        }
+
+        .logout-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 107, 157, 0.1);
+            border-color: var(--accent-pink);
+            color: var(--accent-pink);
+        }
+
+        /* 登录弹窗 */
+        .login-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .login-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .login-modal {
+            background: #fff;
+            border-radius: var(--radius-xl);
+            width: 100%;
+            max-width: 420px;
+            padding: 48px 40px;
+            position: relative;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .login-modal-overlay.active .login-modal {
+            transform: scale(1);
+        }
+
+        .login-modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: rgba(0, 0, 0, 0.06);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .login-modal-close:hover {
+            background: rgba(0, 0, 0, 0.1);
+            transform: rotate(90deg);
+        }
+
+        .login-modal-close svg {
+            width: 18px;
+            height: 18px;
+            color: var(--text-secondary);
+        }
+
+        .login-modal-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-modal-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .login-form-group {
+            margin-bottom: 20px;
+        }
+
+        .login-form-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .login-form-label::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            background: linear-gradient(180deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 2px;
+        }
+
+        .login-input-wrapper {
+            position: relative;
+        }
+
+        .login-input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 20px;
+        }
+
+        .login-form-input {
+            width: 100%;
+            padding: 14px 16px 14px 48px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            color: var(--text-primary);
+            background: #fff;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .login-form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(46, 125, 246, 0.1);
+        }
+
+        .login-form-input::placeholder {
+            color: var(--text-light);
+        }
+
+        .login-password-toggle {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-light);
+            font-size: 18px;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-password-toggle:hover {
+            color: var(--text-secondary);
+        }
+
+        .login-form-options {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .login-remember {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .login-remember input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .login-forgot {
+            font-size: 14px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .login-forgot:hover {
+            color: var(--primary-dark);
+        }
+
+        .login-submit-btn {
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(46, 125, 246, 0.35);
+        }
+
+        .login-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(46, 125, 246, 0.45);
+        }
+
+        /* 主内容区 */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+
+        /* 页面标题区 */
+        .page-header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding: 48px 40px;
+            background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
+            border-radius: var(--radius-xl);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--accent-yellow) 0%, var(--accent-orange) 25%, var(--accent-pink) 50%, var(--primary) 75%, var(--accent-green) 100%);
+        }
+
+        .page-label {
+            font-size: 13px;
+            color: var(--text-light);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .page-title {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        /* 搜索框 */
+        .search-section {
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .search-box {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 22px;
+            color: var(--text-light);
+            pointer-events: none;
+            transition: color 0.3s ease;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 18px 20px 18px 56px;
+            background: var(--bg-white);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-lg);
+            color: var(--text-primary);
+            font-size: 15px;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-light);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(46, 125, 246, 0.1);
+        }
+
+        .search-input:focus + .search-icon {
+            color: var(--primary);
+        }
+
+        /* 部门标签筛选 */
+        .dept-filter {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 48px;
+        }
+
+        .dept-tag {
+            padding: 12px 24px;
+            background: var(--bg-white);
+            border: 2px solid var(--border);
+            border-radius: 50px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .dept-tag:hover {
+            border-color: var(--primary-light);
+            color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .dept-tag.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-color: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(46, 125, 246, 0.35);
+        }
+
+        .dept-tag.disabled {
+            background: var(--disabled-bg);
+            border-color: var(--disabled-border);
+            color: var(--disabled-text);
+            cursor: not-allowed;
+        }
+
+        .dept-tag.disabled:hover {
+            transform: none;
+            box-shadow: var(--shadow-sm);
+            border-color: var(--disabled-border);
+            color: var(--disabled-text);
+        }
+
+        .dept-tag .count {
+            padding: 4px 10px;
+            background: rgba(46, 125, 246, 0.1);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .dept-tag.active .count {
+            background: rgba(255, 255, 255, 0.25);
+            color: #fff;
+        }
+
+        .dept-tag.disabled .count {
+            background: rgba(191, 191, 191, 0.2);
+            color: var(--disabled-text);
+        }
+
+        /* 部门区块 */
+        .dept-section {
+            margin-bottom: 64px;
+        }
+
+        .dept-section.hidden {
+            display: none;
+        }
+
+        .dept-section.disabled {
+            opacity: 0.6;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .dept-icon {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, rgba(46, 125, 246, 0.15) 0%, rgba(107, 203, 119, 0.1) 100%);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            border: 2px solid rgba(46, 125, 246, 0.15);
+        }
+
+        .dept-section.disabled .dept-icon {
+            background: linear-gradient(135deg, rgba(191, 191, 191, 0.15) 0%, rgba(191, 191, 191, 0.1) 100%);
+            border-color: rgba(191, 191, 191, 0.15);
+        }
+
+        .section-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .dept-section.disabled .section-title {
+            color: var(--disabled-text);
+        }
+
+        .section-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        .dept-section.disabled .section-desc {
+            color: var(--disabled-text);
+        }
+
+        /* 功能卡片网格 */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary-light);
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-card.hidden {
+            display: none;
+        }
+
+        .feature-card.disabled {
+            background: var(--disabled-bg);
+            border-color: var(--disabled-border);
+            opacity: 0.7;
+        }
+
+        .feature-card.disabled:hover {
+            transform: none;
+            box-shadow: var(--shadow-sm);
+            border-color: var(--disabled-border);
+        }
+
+        .feature-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, rgba(46, 125, 246, 0.12) 0%, rgba(107, 203, 119, 0.08) 100%);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border: 2px solid rgba(46, 125, 246, 0.1);
+        }
+
+        .feature-card.disabled .feature-icon {
+            background: linear-gradient(135deg, rgba(191, 191, 191, 0.12) 0%, rgba(191, 191, 191, 0.08) 100%);
+            border-color: rgba(191, 191, 191, 0.1);
+        }
+
+        .feature-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .feature-card.disabled .feature-title {
+            color: var(--disabled-text);
+        }
+
+        .feature-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 18px;
+        }
+
+        .feature-card.disabled .feature-desc {
+            color: var(--disabled-text);
+        }
+
+        .feature-highlights {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .highlight-tag {
+            padding: 6px 12px;
+            background: linear-gradient(135deg, rgba(46, 125, 246, 0.08) 0%, rgba(107, 203, 119, 0.08) 100%);
+            border: 1px solid rgba(46, 125, 246, 0.15);
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .feature-card.disabled .highlight-tag {
+            background: linear-gradient(135deg, rgba(191, 191, 191, 0.08) 0%, rgba(191, 191, 191, 0.08) 100%);
+            border-color: rgba(191, 191, 191, 0.15);
+            color: var(--disabled-text);
+        }
+
+        .feature-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: #fff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            transition: all 0.3s ease;
+            width: 100%;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(46, 125, 246, 0.25);
+        }
+
+        .feature-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(46, 125, 246, 0.4);
+        }
+
+        .feature-card.disabled .feature-link {
+            background: linear-gradient(135deg, var(--disabled-bg) 0%, var(--disabled-bg) 100%);
+            color: var(--disabled-text);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .feature-card.disabled .feature-link:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 无结果提示 */
+        .no-result {
+            text-align: center;
+            padding: 64px 24px;
+            color: var(--text-secondary);
+            font-size: 16px;
+            display: none;
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .no-result.show {
+            display: block;
+        }
+
+        .no-result-icon {
+            font-size: 56px;
+            margin-bottom: 20px;
+        }
+
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            padding: 40px 24px;
+            color: var(--text-light);
+            font-size: 14px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-white);
+        }
+
+        /* 响应式 */
+        @media (max-width: 992px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .header {
+                padding: 0 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 28px;
+            }
+
+            .page-header {
+                padding: 32px 24px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .main-content {
+                padding: 32px 16px;
+            }
+
+            .dept-filter {
+                gap: 8px;
+            }
+
+            .dept-tag {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+
+            .feature-card {
+                padding: 24px;
+            }
+
+            .nav-menu {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 装饰性背景 -->
+    <div class="bg-decoration bg-decoration-1"></div>
+    <div class="bg-decoration bg-decoration-2"></div>
+
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <img src="img/logo.png" alt="云创电商" style="height: 28px; width: auto; max-width: 144px; object-fit: contain;">
+            </div>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item">公司介绍</a>
+                <a href="bumengongneng.html" class="nav-item active">部门功能</a>
+                <a href="shiyongshuoming.html" class="nav-item">使用说明</a>
+            </nav>
+        </div>
+        <div class="header-right" id="headerRight">
+            <button class="login-btn" id="openLoginModal">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                    <polyline points="10 17 15 12 10 7"/>
+                    <line x1="15" y1="12" x2="3" y2="12"/>
+                </svg>
+                登录
+            </button>
+        </div>
+    </header>
+
+    <!-- 登录弹窗 -->
+    <div class="login-modal-overlay" id="loginModal">
+        <div class="login-modal">
+            <button class="login-modal-close" id="closeLoginModal">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+            <div class="login-modal-header">
+                <div class="login-modal-logo">
+                    <img src="img/logo.png" alt="云创电商" style="height: 56px; width: auto; max-width: 200px; object-fit: contain; margin-bottom: 12px;">
+                </div>
+            </div>
+            <form id="loginForm">
+                <div class="login-form-group">
+                    <label class="login-form-label">姓名</label>
+                    <div class="login-input-wrapper">
+                        <span class="login-input-icon">👤</span>
+                        <input type="text" class="login-form-input" id="username" name="username" autocomplete="username" placeholder="请输入姓名" required>
+                    </div>
+                </div>
+                <div class="login-form-group">
+                    <label class="login-form-label">密码</label>
+                    <div class="login-input-wrapper">
+                        <span class="login-input-icon">🔒</span>
+                        <input type="password" class="login-form-input" id="password" name="password" autocomplete="current-password" placeholder="请输入密码" required>
+                        <button type="button" class="login-password-toggle" id="togglePassword">
+                            <span id="eyeIcon">👁️</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="login-form-options">
+                    <label class="login-remember">
+                        <input type="checkbox" id="rememberMe" checked>
+                        <span>记住我</span>
+                    </label>
+                </div>
+                <button type="submit" class="login-submit-btn">登录</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 主内容 -->
+    <main class="main-content">
+        <!-- 页面标题 -->
+        <section class="page-header">
+            <div class="page-label">DEPARTMENT FUNCTIONS</div>
+            <h1 class="page-title">部门功能</h1>
+            <p class="page-subtitle">按部门分类，快速找到您需要的功能（仅视觉部功能可用）</p>
+        </section>
+
+        <!-- 搜索框 -->
+        <section class="search-section">
+            <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="M21 21l-4.35-4.35"/>
+                </svg>
+                <input type="text" class="search-input" id="featureSearch" placeholder="搜索功能，如：人像、换装、背景..." autocomplete="off">
+            </div>
+        </section>
+
+        <!-- 部门筛选标签 -->
+        <section class="dept-filter" id="deptFilter">
+            <div class="dept-tag active" data-dept="all">
+                全部
+                <span class="count">10</span>
+            </div>
+            <div class="dept-tag" data-dept="yunying">
+                📊 运营部
+                <span class="count">0</span>
+            </div>
+            <div class="dept-tag" data-dept="shijue">
+                🎨 视觉部
+                <span class="count">10</span>
+            </div>
+            <div class="dept-tag" data-dept="jishu">
+                💻 技术部
+                <span class="count">0</span>
+            </div>
+            <div class="dept-tag" data-dept="shichang">
+                📢 市场部
+                <span class="count">0</span>
+            </div>
+            <div class="dept-tag" data-dept="kefu">
+                🎧 客服部
+                <span class="count">0</span>
+            </div>
+            <div class="dept-tag" data-dept="chanpin">
+                📱 产品部
+                <span class="count">0</span>
+            </div>
+        </section>
+
+        <!-- 运营部 -->
+        <section class="dept-section" data-dept="yunying">
+            <div class="section-header">
+                <div class="dept-icon">📊</div>
+                <div>
+                    <div class="section-title">运营部</div>
+                    <div class="section-desc">商品上架、活动策划、数据分析等运营相关功能</div>
+                </div>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card" data-keywords="人像生成 模特 人物 照片 运营 商品展示">
+                    <div class="feature-header">
+                        <div class="feature-icon">👤</div>
+                        <div class="feature-title">人像生成</div>
+                    </div>
+                    <div class="feature-desc">
+                        根据文字描述智能生成逼真的人像照片，适用于商品展示、广告素材等运营场景。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">智能描述</span>
+                        <span class="highlight-tag">多种风格</span>
+                        <span class="highlight-tag">高清输出</span>
+                    </div>
+                    <a href="shijue/renxiangshengcheng.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="feature-card" data-keywords="模特换装 服装 穿搭 运营 商品">
+                    <div class="feature-header">
+                        <div class="feature-icon">👔</div>
+                        <div class="feature-title">模特换装</div>
+                    </div>
+                    <div class="feature-desc">
+                        为模特更换不同服装，快速生成多套穿搭方案，大幅降低商品拍摄成本。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">保持姿态</span>
+                        <span class="highlight-tag">批量处理</span>
+                        <span class="highlight-tag">自然融合</span>
+                    </div>
+                    <a href="shijue/motehuanzhuang.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="feature-card" data-keywords="服装复刻 款式 纹理 运营 商品素材">
+                    <div class="feature-header">
+                        <div class="feature-icon">🎽</div>
+                        <div class="feature-title">服装复刻</div>
+                    </div>
+                    <div class="feature-desc">
+                        上传参考服装图片，AI智能分析款式特征，生成相似服装展示图，快速扩充商品素材库。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">智能分析</span>
+                        <span class="highlight-tag">风格迁移</span>
+                        <span class="highlight-tag">细节还原</span>
+                    </div>
+                    <a href="shijue/fuzhuangfuke.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="feature-card" data-keywords="姿势裂变 动态 展示 多角度 运营">
+                    <div class="feature-header">
+                        <div class="feature-icon">🤸</div>
+                        <div class="feature-title">姿势裂变</div>
+                    </div>
+                    <div class="feature-desc">
+                        基于单张模特照片，生成多种姿势和角度的展示图，全方位展示商品效果。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">多角度展示</span>
+                        <span class="highlight-tag">姿态自然</span>
+                        <span class="highlight-tag">批量生成</span>
+                    </div>
+                    <a href="shijue/dongzuoliebian.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 视觉部 - 可用状态 -->
+        <section class="dept-section" data-dept="shijue">
+            <div class="section-header">
+                <div class="dept-icon">🎨</div>
+                <div>
+                    <div class="section-title">视觉部</div>
+                    <div class="section-desc">图片处理、模特换装、服装复刻等视觉设计相关功能</div>
+                </div>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card" data-keywords="人像生成 模特 人物 照片 视觉 设计">
+                    <div class="feature-header">
+                        <div class="feature-icon">👤</div>
+                        <div class="feature-title">人像生成</div>
+                    </div>
+                    <div class="feature-desc">
+                        根据文字描述智能生成逼真的人像照片，支持多种风格和场景，适用于商品展示和广告素材。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">智能描述</span>
+                        <span class="highlight-tag">多种风格</span>
+                        <span class="highlight-tag">高清输出</span>
+                    </div>
+                    <a href="shijue/renxiangshengcheng.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="feature-card" data-keywords="模特换装 服装 穿搭 视觉 设计">
+                    <div class="feature-header">
+                        <div class="feature-icon">👔</div>
+                        <div class="feature-title">模特换装</div>
+                    </div>
+                    <div class="feature-desc">
+                        为模特更换不同服装，快速生成多套穿搭方案，保持姿态自然，大幅降低拍摄成本。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">保持姿态</span>
+                        <span class="highlight-tag">批量处理</span>
+                        <span class="highlight-tag">自然融合</span>
+                    </div>
+                    <a href="shijue/motehuanzhuang.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="feature-card" data-keywords="服装复刻 款式 纹理 视觉 设计">
+                    <div class="feature-header">
+                        <div class="feature-icon">🎽</div>
+                        <div class="feature-title">服装复刻</div>
+                    </div>
+                    <div class="feature-desc">
+                        上传参考服装图片，AI智能分析款式特征，生成相似服装展示图，快速扩充素材库。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">智能分析</span>
+                        <span class="highlight-tag">风格迁移</span>
+                        <span class="highlight-tag">细节还原</span>
+                    </div>
+                    <a href="shijue/fuzhuangfuke.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="feature-card" data-keywords="动作裂变 姿势 动态 展示 视觉">
+                    <div class="feature-header">
+                        <div class="feature-icon">🤸</div>
+                        <div class="feature-title">动作裂变</div>
+                    </div>
+                    <div class="feature-desc">
+                        基于单张模特照片，生成多种姿势和动作的展示图，全方位展示服装穿着效果。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">多角度展示</span>
+                        <span class="highlight-tag">姿态自然</span>
+                        <span class="highlight-tag">批量生成</span>
+                    </div>
+                    <a href="shijue/dongzuoliebian.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="feature-card" data-keywords="印花提取 图案 纹理 视觉 设计">
+                    <div class="feature-header">
+                        <div class="feature-icon">🎨</div>
+                        <div class="feature-title">印花提取</div>
+                    </div>
+                    <div class="feature-desc">
+                        从服装图片中智能提取印花图案，生成透明背景素材，方便二次设计和应用。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">智能提取</span>
+                        <span class="highlight-tag">透明背景</span>
+                        <span class="highlight-tag">高清输出</span>
+                    </div>
+                    <a href="shijue/yinhuaqtiqu.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="feature-card" data-keywords="尺寸扩展 智能裁剪 图片尺寸 视觉">
+                    <div class="feature-header">
+                        <div class="feature-icon">📐</div>
+                        <div class="feature-title">尺寸扩展</div>
+                    </div>
+                    <div class="feature-desc">
+                        AI智能尺寸扩展，自动识别图片主体，智能扩展画布尺寸，保持画面协调自然。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">智能裁剪</span>
+                        <span class="highlight-tag">主体识别</span>
+                        <span class="highlight-tag">比例适配</span>
+                    </div>
+                    <a href="shijue/chicunkuozhan.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="feature-card" data-keywords="高清放大 超清 图片放大 视觉">
+                    <div class="feature-header">
+                        <div class="feature-icon">🔍</div>
+                        <div class="feature-title">高清放大</div>
+                    </div>
+                    <div class="feature-desc">
+                        AI图片超清放大，智能补充细节，提升图片分辨率，保持清晰度和质感。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">超清放大</span>
+                        <span class="highlight-tag">细节补充</span>
+                        <span class="highlight-tag">无损处理</span>
+                    </div>
+                    <a href="shijue/gaoqingfangda.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="feature-card" data-keywords="辅料迁移 配饰 迁移 视觉">
+                    <div class="feature-header">
+                        <div class="feature-icon">🎀</div>
+                        <div class="feature-title">辅料迁移</div>
+                    </div>
+                    <div class="feature-desc">
+                        智能迁移服装辅料和配饰，快速更换纽扣、拉链等装饰元素，提升设计效率。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">智能迁移</span>
+                        <span class="highlight-tag">辅料识别</span>
+                        <span class="highlight-tag">自然融合</span>
+                    </div>
+                    <a href="shijue/fuliaoqianyi.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="feature-card" data-keywords="主图复刻 商品主图 复刻 视觉">
+                    <div class="feature-header">
+                        <div class="feature-icon">🖼️</div>
+                        <div class="feature-title">主图复刻</div>
+                    </div>
+                    <div class="feature-desc">
+                        智能复刻电商商品主图，保持原有风格和布局，快速生成多套主图方案。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">风格保持</span>
+                        <span class="highlight-tag">布局复刻</span>
+                        <span class="highlight-tag">批量生成</span>
+                    </div>
+                    <a href="shijue/zhutufuke.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="feature-card" data-keywords="插画裂变 插画 创意 视觉 设计">
+                    <div class="feature-header">
+                        <div class="feature-icon">🎭</div>
+                        <div class="feature-title">插画裂变</div>
+                    </div>
+                    <div class="feature-desc">
+                        基于参考插画智能生成多种风格变体，快速扩充创意素材库，激发设计灵感。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">风格变体</span>
+                        <span class="highlight-tag">创意生成</span>
+                        <span class="highlight-tag">批量裂变</span>
+                    </div>
+                    <a href="shijue/chahualiebian.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 技术部 -->
+        <section class="dept-section" data-dept="jishu">
+            <div class="section-header">
+                <div class="dept-icon">💻</div>
+                <div>
+                    <div class="section-title">技术部</div>
+                    <div class="section-desc">API接口、系统集成、数据管理等技术相关功能</div>
+                </div>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card" data-keywords="API接口 开发 集成 技术 对接">
+                    <div class="feature-header">
+                        <div class="feature-icon">🔌</div>
+                        <div class="feature-title">API接口</div>
+                    </div>
+                    <div class="feature-desc">
+                        提供标准化API接口，支持将AI图片功能集成到自有系统和应用中。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">RESTful API</span>
+                        <span class="highlight-tag">SDK支持</span>
+                        <span class="highlight-tag">文档完善</span>
+                    </div>
+                    <a href="shijue/renxiangshengcheng.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="feature-card" data-keywords="系统对接 集成 技术 平台">
+                    <div class="feature-header">
+                        <div class="feature-icon">🔗</div>
+                        <div class="feature-title">系统对接</div>
+                    </div>
+                    <div class="feature-desc">
+                        支持与主流电商平台、ERP系统对接，实现数据自动同步和流程自动化。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">电商对接</span>
+                        <span class="highlight-tag">ERP集成</span>
+                        <span class="highlight-tag">Webhook</span>
+                    </div>
+                    <a href="shijue/motehuanzhuang.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="feature-card" data-keywords="数据管理 分析 技术 统计">
+                    <div class="feature-header">
+                        <div class="feature-icon">📊</div>
+                        <div class="feature-title">数据管理</div>
+                    </div>
+                    <div class="feature-desc">
+                        查看使用统计、生成记录、API调用日志等数据，支持导出和分析。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">使用统计</span>
+                        <span class="highlight-tag">日志查询</span>
+                        <span class="highlight-tag">数据导出</span>
+                    </div>
+                    <a href="shijue/fuzhuangfuke.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 市场部 -->
+        <section class="dept-section" data-dept="shichang">
+            <div class="section-header">
+                <div class="dept-icon">📢</div>
+                <div>
+                    <div class="section-title">市场部</div>
+                    <div class="section-desc">营销推广、品牌管理、活动策划等市场相关功能</div>
+                </div>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card" data-keywords="营销素材 海报 广告 市场 推广">
+                    <div class="feature-header">
+                        <div class="feature-icon">📱</div>
+                        <div class="feature-title">营销素材生成</div>
+                    </div>
+                    <div class="feature-desc">
+                        一键生成各类营销海报、广告图、社交媒体素材，支持多种模板和风格。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">海量模板</span>
+                        <span class="highlight-tag">智能排版</span>
+                        <span class="highlight-tag">品牌定制</span>
+                    </div>
+                    <a href="shijue/renxiangshengcheng.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="feature-card" data-keywords="视频制作 剪辑 动画 市场 推广">
+                    <div class="feature-header">
+                        <div class="feature-icon">🎬</div>
+                        <div class="feature-title">视频制作</div>
+                    </div>
+                    <div class="feature-desc">
+                        将静态图片转换为动态视频，添加转场效果和背景音乐，制作商品展示视频。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">智能转场</span>
+                        <span class="highlight-tag">音乐库</span>
+                        <span class="highlight-tag">多平台适配</span>
+                    </div>
+                    <a href="shijue/motehuanzhuang.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="feature-card" data-keywords="竞品分析 市场 调研 数据">
+                    <div class="feature-header">
+                        <div class="feature-icon">📈</div>
+                        <div class="feature-title">竞品分析</div>
+                    </div>
+                    <div class="feature-desc">
+                        分析竞品商品图片和市场表现，提供视觉优化建议和市场趋势洞察。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">视觉分析</span>
+                        <span class="highlight-tag">趋势预测</span>
+                        <span class="highlight-tag">优化建议</span>
+                    </div>
+                    <a href="shijue/fuzhuangfuke.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 客服部 -->
+        <section class="dept-section" data-dept="kefu">
+            <div class="section-header">
+                <div class="dept-icon">🎧</div>
+                <div>
+                    <div class="section-title">客服部</div>
+                    <div class="section-desc">客户支持、问题反馈、使用帮助等客服相关功能</div>
+                </div>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card" data-keywords="智能客服 机器人 自动回复 客服">
+                    <div class="feature-header">
+                        <div class="feature-icon">🤖</div>
+                        <div class="feature-title">智能客服</div>
+                    </div>
+                    <div class="feature-desc">
+                        7x24小时在线智能客服，快速解答常见问题，支持图片识别和问题分类。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">即时响应</span>
+                        <span class="highlight-tag">图片识别</span>
+                        <span class="highlight-tag">多轮对话</span>
+                    </div>
+                    <a href="shijue/renxiangshengcheng.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="feature-card" data-keywords="问题反馈 工单 客服 支持">
+                    <div class="feature-header">
+                        <div class="feature-icon">📝</div>
+                        <div class="feature-title">问题反馈</div>
+                    </div>
+                    <div class="feature-desc">
+                        提交功能使用问题或建议，客服团队将在24小时内响应处理。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">快速响应</span>
+                        <span class="highlight-tag">进度追踪</span>
+                        <span class="highlight-tag">满意度评价</span>
+                    </div>
+                    <a href="shijue/motehuanzhuang.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 产品部 -->
+        <section class="dept-section" data-dept="chanpin">
+            <div class="section-header">
+                <div class="dept-icon">📱</div>
+                <div>
+                    <div class="section-title">产品部</div>
+                    <div class="section-desc">产品管理、需求收集、原型设计等产品相关功能</div>
+                </div>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card" data-keywords="需求管理 产品 规划 功能">
+                    <div class="feature-header">
+                        <div class="feature-icon">📋</div>
+                        <div class="feature-title">需求管理</div>
+                    </div>
+                    <div class="feature-desc">
+                        收集和整理各部门的功能需求，进行优先级排序和开发规划。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">需求收集</span>
+                        <span class="highlight-tag">优先级排序</span>
+                        <span class="highlight-tag">进度跟踪</span>
+                    </div>
+                    <a href="shijue/renxiangshengcheng.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="feature-card" data-keywords="原型设计 产品 界面 交互">
+                    <div class="feature-header">
+                        <div class="feature-icon">🎨</div>
+                        <div class="feature-title">原型设计</div>
+                    </div>
+                    <div class="feature-desc">
+                        快速生成产品界面原型，支持交互设计和团队协作。
+                    </div>
+                    <div class="feature-highlights">
+                        <span class="highlight-tag">快速原型</span>
+                        <span class="highlight-tag">交互设计</span>
+                        <span class="highlight-tag">团队协作</span>
+                    </div>
+                    <a href="shijue/motehuanzhuang.html" class="feature-link">
+                        立即使用
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 无结果提示 -->
+        <div class="no-result" id="noResult">
+            <div class="no-result-icon">🔍</div>
+            <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">未找到匹配的功能</div>
+            <div style="color: var(--text-secondary);">请尝试其他关键词，如：人像、换装、背景等</div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div style="font-weight: 700; color: var(--primary); margin-bottom: 8px;">云创电商</div>
+        <div>© 2025 湖北云创优品电子商务有限公司 · 让每个孩子都穿上好衣服</div>
+    </footer>
+
+    <!-- 搜索和筛选功能脚本 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('featureSearch');
+            const deptTags = document.querySelectorAll('.dept-tag');
+            const deptSections = document.querySelectorAll('.dept-section');
+            const featureCards = document.querySelectorAll('.feature-card');
+            const noResult = document.getElementById('noResult');
+            
+            let currentDept = 'all';
+            
+            // 动态计算并更新功能数量
+            function updateCounts() {
+                // 计算每个部门的功能数量
+                const deptCounts = {};
+                let totalCount = 0;
+                
+                deptSections.forEach(section => {
+                    const dept = section.dataset.dept;
+                    const count = section.querySelectorAll('.feature-card').length;
+                    deptCounts[dept] = count;
+                    totalCount += count;
+                });
+                
+                // 更新标签上的数字
+                document.querySelectorAll('.dept-tag').forEach(tag => {
+                    const countSpan = tag.querySelector('.count');
+                    if (!countSpan) return;
+                    
+                    const dept = tag.dataset.dept;
+                    if (dept === 'all') {
+                        countSpan.textContent = totalCount;
+                    } else {
+                        countSpan.textContent = deptCounts[dept] || 0;
+                    }
+                });
+            }
+            
+            // 初始化时更新数量
+            updateCounts();
+            
+            // 部门标签点击事件
+            deptTags.forEach(tag => {
+                tag.addEventListener('click', function() {
+                    const dept = this.dataset.dept;
+                    currentDept = dept;
+                    
+                    // 更新标签状态
+                    deptTags.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 执行筛选
+                    filterContent();
+                });
+            });
+            
+            // 搜索输入事件
+            searchInput.addEventListener('input', function() {
+                filterContent();
+            });
+            
+            // 筛选功能
+            function filterContent() {
+                const keyword = searchInput.value.trim().toLowerCase();
+                let hasVisibleCard = false;
+                
+                // 遍历所有功能卡片
+                featureCards.forEach(card => {
+                    const cardDept = card.closest('.dept-section').dataset.dept;
+                    const keywords = card.dataset.keywords.toLowerCase();
+                    const title = card.querySelector('.feature-title').textContent.toLowerCase();
+                    const desc = card.querySelector('.feature-desc').textContent.toLowerCase();
+                    
+                    // 检查是否匹配部门筛选
+                    const matchDept = currentDept === 'all' || cardDept === currentDept;
+                    
+                    // 检查是否匹配搜索关键词
+                    let matchKeyword = true;
+                    if (keyword) {
+                        matchKeyword = keywords.includes(keyword) || 
+                                      title.includes(keyword) || 
+                                      desc.includes(keyword);
+                    }
+                    
+                    // 显示或隐藏卡片
+                    if (matchDept && matchKeyword) {
+                        card.classList.remove('hidden');
+                        hasVisibleCard = true;
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+                
+                // 更新部门区块显示状态
+                deptSections.forEach(section => {
+                    const sectionDept = section.dataset.dept;
+                    const visibleCards = section.querySelectorAll('.feature-card:not(.hidden)');
+                    
+                    if (currentDept === 'all') {
+                        // 全部模式：显示所有部门
+                        section.classList.remove('hidden');
+                    } else {
+                        // 特定部门模式：只显示选中的部门
+                        if (sectionDept === currentDept) {
+                            section.classList.remove('hidden');
+                        } else {
+                            section.classList.add('hidden');
+                        }
+                    }
+                });
+                
+                // 显示或隐藏无结果提示
+                if (keyword && !hasVisibleCard) {
+                    noResult.classList.add('show');
+                } else {
+                    noResult.classList.remove('show');
+                }
+            }
+            
+            // 初始化：只显示视觉部
+            filterContent();
+        });
+
+        // API 基础地址 - 部署时请修改为实际域名
+        const API_BASE_URL = window.location.origin;
+
+        // 验证用户是否有效
+        async function verifyUser() {
+            const username = localStorage.getItem('username');
+            if (!username) {
+                return false;
+            }
+
+            try {
+                const response = await fetch(`/api/auth/verify?username=${encodeURIComponent(username)}`);
+                const result = await response.json();
+
+                if (!result.valid) {
+                    localStorage.removeItem('isLoggedIn');
+                    localStorage.removeItem('username');
+                    localStorage.removeItem('userDept');
+                    alert('您的账号已被删除或状态异常，请重新登录');
+                    window.location.href = 'index.html';
+                    return false;
+                }
+
+                return true;
+            } catch (error) {
+                console.error('验证用户失败:', error);
+                return false;
+            }
+        }
+
+        // 登录弹窗功能
+        document.addEventListener('DOMContentLoaded', async function() {
+            let isLoggedIn = localStorage.getItem('isLoggedIn');
+            let username = localStorage.getItem('username');
+            let userDept = localStorage.getItem('userDept') || '部门';
+
+            const loginModal = document.getElementById('loginModal');
+            let openLoginModal = document.getElementById('openLoginModal');
+            const closeLoginModal = document.getElementById('closeLoginModal');
+            const loginForm = document.getElementById('loginForm');
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+            const headerRight = document.getElementById('headerRight');
+            const mainContent = document.querySelector('.main-content');
+
+            // 更新头部显示（登录/用户信息）
+            function updateHeader() {
+                isLoggedIn = localStorage.getItem('isLoggedIn');
+                username = localStorage.getItem('username');
+                userDept = localStorage.getItem('userDept') || '部门';
+
+                if (isLoggedIn === 'true' && username) {
+                    // 已登录，显示用户名和退出按钮
+                    headerRight.innerHTML = `
+                        <div class="user-info">
+                            <span class="user-name">${userDept}_${username}</span>
+                            <button class="logout-btn" id="logoutBtn">退出</button>
+                        </div>
+                    `;
+                    // 绑定退出事件
+                    document.getElementById('logoutBtn').addEventListener('click', function() {
+                        localStorage.removeItem('isLoggedIn');
+                        localStorage.removeItem('username');
+                        localStorage.removeItem('userDept');
+                        // 退出后跳转到公司介绍页面
+                        window.location.href = 'index.html';
+                    });
+                } else {
+                    // 未登录，显示登录按钮
+                    headerRight.innerHTML = `
+                        <button class="login-btn" id="openLoginModal">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                                <polyline points="10 17 15 12 10 7"/>
+                                <line x1="15" y1="12" x2="3" y2="12"/>
+                            </svg>
+                            登录
+                        </button>
+                    `;
+                    // 重新获取登录按钮并绑定事件
+                    const newOpenLoginModal = document.getElementById('openLoginModal');
+                    if (newOpenLoginModal) {
+                        newOpenLoginModal.addEventListener('click', function() {
+                            loginModal.classList.add('active');
+                            document.body.style.overflow = 'hidden';
+                            fillRememberedCredentials();
+                        });
+                    }
+                }
+                
+            }
+
+            // 初始化头部显示（先根据localStorage同步渲染，避免闪烁）
+            updateHeader();
+
+            // 后台异步验证用户（验证失败时再更新UI）
+            if (isLoggedIn === 'true' && username) {
+                verifyUser().then(isValid => {
+                    if (!isValid) {
+                        // 验证失败，清除登录状态并更新UI
+                        localStorage.removeItem('isLoggedIn');
+                        localStorage.removeItem('username');
+                        localStorage.removeItem('userDept');
+                        updateHeader();
+                        // 显示登录弹窗
+                        loginModal.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                        if (mainContent) {
+                            mainContent.style.pointerEvents = 'none';
+                            mainContent.style.opacity = '0.5';
+                        }
+                    }
+                });
+            }
+
+            // 检查登录状态，未登录则显示登录弹窗并禁用页面内容
+            function checkLoginStatus() {
+                const currentLoginStatus = localStorage.getItem('isLoggedIn');
+                if (currentLoginStatus !== 'true') {
+                    // 未登录，显示登录弹窗
+                    loginModal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                    
+                    // 禁用页面内容交互
+                    if (mainContent) {
+                        mainContent.style.pointerEvents = 'none';
+                        mainContent.style.opacity = '0.5';
+                        mainContent.style.filter = 'blur(2px)';
+                    }
+                    
+                    // 禁用导航链接（除了公司介绍）
+                    const navItems = document.querySelectorAll('.nav-item');
+                    navItems.forEach(item => {
+                        if (!item.href.includes('index.html')) {
+                            item.addEventListener('click', function(e) {
+                                if (localStorage.getItem('isLoggedIn') !== 'true') {
+                                    e.preventDefault();
+                                    loginModal.classList.add('active');
+                                    document.body.style.overflow = 'hidden';
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    // 已登录，恢复页面内容
+                    if (mainContent) {
+                        mainContent.style.pointerEvents = 'auto';
+                        mainContent.style.opacity = '1';
+                        mainContent.style.filter = 'none';
+                    }
+                }
+            }
+
+            // 执行登录状态检查（仅当localStorage显示未登录时）
+            if (isLoggedIn !== 'true') {
+                checkLoginStatus();
+            } else {
+                // 已登录，确保页面内容可用
+                if (mainContent) {
+                    mainContent.style.pointerEvents = 'auto';
+                    mainContent.style.opacity = '1';
+                    mainContent.style.filter = 'none';
+                }
+            }
+
+            // 填充记住的账号信息
+            function fillRememberedCredentials() {
+                const rememberedUsername = localStorage.getItem('rememberedUsername');
+                const rememberedPassword = localStorage.getItem('rememberedPassword');
+                const rememberMeChecked = localStorage.getItem('rememberMe');
+                
+                if (rememberMeChecked === 'true' && rememberedUsername && rememberedPassword) {
+                    document.getElementById('username').value = rememberedUsername;
+                    document.getElementById('password').value = rememberedPassword;
+                    document.getElementById('rememberMe').checked = true;
+                }
+            }
+
+            // 打开登录弹窗（在updateHeader后重新绑定）
+            function bindLoginModalEvent() {
+                openLoginModal = document.getElementById('openLoginModal');
+                if (openLoginModal) {
+                    openLoginModal.addEventListener('click', function() {
+                        loginModal.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                        fillRememberedCredentials();
+                    });
+                }
+            }
+            bindLoginModalEvent();
+
+            // 关闭登录弹窗
+            closeLoginModal.addEventListener('click', function() {
+                loginModal.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+
+            // 点击遮罩层关闭弹窗
+            loginModal.addEventListener('click', function(e) {
+                if (e.target === loginModal) {
+                    loginModal.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+
+            // 密码显示/隐藏切换
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                eyeIcon.textContent = type === 'password' ? '👁️' : '🙈';
+            });
+
+            // 登录表单提交
+            loginForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const inputUsername = document.getElementById('username').value;
+                const inputPassword = document.getElementById('password').value;
+                const rememberMe = document.getElementById('rememberMe').checked;
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            username: inputUsername,
+                            password: inputPassword
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // 登录成功
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('username', data.data.username);
+                        localStorage.setItem('userDept', data.data.dept);
+
+                        // 记住账号密码
+                        if (rememberMe) {
+                            localStorage.setItem('rememberMe', 'true');
+                            localStorage.setItem('rememberedUsername', inputUsername);
+                            localStorage.setItem('rememberedPassword', inputPassword);
+                        } else {
+                            localStorage.removeItem('rememberMe');
+                            localStorage.removeItem('rememberedUsername');
+                            localStorage.removeItem('rememberedPassword');
+                        }
+
+                        // 关闭弹窗并刷新页面
+                        loginModal.classList.remove('active');
+                        document.body.style.overflow = '';
+                        location.reload();
+                    } else {
+                        // 登录失败
+                        alert(data.message || '登录失败，请检查用户名和密码');
+                    }
+                } catch (error) {
+                    console.error('登录请求失败:', error);
+                    alert('登录请求失败，请稍后重试');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

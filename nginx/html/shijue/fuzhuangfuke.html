@@ -1,0 +1,3616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>服装复刻 - AI图片生成工具</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00d68f;
+            --primary-hover: #00e69c;
+            --primary-dark: #00b377;
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --bg-tertiary: #1a1a1a;
+            --bg-hover: #1f1f1f;
+            --border: #262626;
+            --border-light: #333;
+            --text-primary: #fff;
+            --text-secondary: #a0a0a0;
+            --text-tertiary: #666;
+            --danger: #ff4d4f;
+            --warning: #faad14;
+            --success: #52c41a;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            font-size: 14px;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 360px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .nav-section {
+            height: 56px;
+            padding: 0 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(20, 20, 20, 0.98) 100%);
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            padding: 8px 12px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(145deg, var(--bg-tertiary) 0%, rgba(26, 26, 26, 0.8) 100%);
+            border: 1px solid var(--border);
+        }
+
+        .back-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            transform: translateX(-2px);
+        }
+
+        .back-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .scene-section {
+            height: 64px;
+            padding: 0 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(20, 20, 20, 0.98) 100%);
+        }
+
+        .section-title {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 3px;
+            height: 10px;
+            background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 2px;
+        }
+
+        .scene-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .scene-icon {
+            font-size: 20px;
+        }
+
+        .form-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(20, 20, 20, 0.95) 100%);
+        }
+
+        .form-section::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .form-section::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .form-section::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--border) 0%, var(--border-light) 100%);
+            border-radius: 3px;
+        }
+
+        .form-section::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, var(--border-light) 0%, rgba(0, 214, 143, 0.3) 100%);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            animation: fadeIn 0.4s ease backwards;
+        }
+
+        .form-group:nth-child(1) { animation-delay: 0.05s; }
+        .form-group:nth-child(2) { animation-delay: 0.1s; }
+        .form-group:nth-child(3) { animation-delay: 0.15s; }
+        .form-group:nth-child(4) { animation-delay: 0.2s; }
+        .form-group:nth-child(5) { animation-delay: 0.25s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            letter-spacing: 0.3px;
+        }
+
+        .form-label::before {
+            content: '';
+            width: 3px;
+            height: 12px;
+            background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 2px;
+        }
+
+        .upload-count {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            font-weight: 400;
+            margin-left: 8px;
+        }
+
+        .upload-count.warning {
+            color: var(--warning);
+        }
+
+        .upload-count.full {
+            color: var(--success);
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: linear-gradient(145deg, var(--bg-tertiary) 0%, rgba(26, 26, 26, 0.8) 100%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
+            height: 130px;
+            min-height: 130px;
+            max-height: 130px;
+            resize: none;
+            line-height: 1.6;
+        }
+
+        .form-textarea:hover {
+            border-color: var(--border-light);
+            background: linear-gradient(145deg, rgba(31, 31, 31, 0.9) 0%, rgba(26, 26, 26, 0.7) 100%);
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 214, 143, 0.12), 0 4px 12px rgba(0, 214, 143, 0.08);
+            background: linear-gradient(145deg, rgba(31, 31, 31, 0.95) 0%, rgba(26, 26, 26, 0.85) 100%);
+        }
+
+        .form-textarea::placeholder {
+            color: var(--text-tertiary);
+            transition: color 0.2s ease;
+        }
+
+        .form-textarea:focus::placeholder {
+            color: rgba(102, 102, 102, 0.7);
+        }
+
+        .char-limit-hint {
+            margin-left: auto;
+            font-size: 12px;
+            color: var(--text-tertiary);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .char-limit-hint.show {
+            opacity: 1;
+            color: var(--danger);
+        }
+
+        .form-label-with-hint {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .upload-zone {
+            width: 100%;
+            padding: 32px 24px;
+            background: linear-gradient(145deg, var(--bg-tertiary) 0%, rgba(26, 26, 26, 0.6) 100%);
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-lg);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-zone::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0, 214, 143, 0.05) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--primary);
+            background: linear-gradient(145deg, rgba(0, 214, 143, 0.08) 0%, rgba(26, 26, 26, 0.6) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 214, 143, 0.1);
+        }
+
+        .upload-zone:hover::before {
+            opacity: 1;
+        }
+
+        .upload-zone.drag-over {
+            border-color: var(--primary);
+            background: linear-gradient(145deg, rgba(0, 214, 143, 0.15) 0%, rgba(26, 26, 26, 0.8) 100%);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 32px rgba(0, 214, 143, 0.2);
+        }
+
+        .upload-zone.drag-over::before {
+            opacity: 1;
+        }
+
+        .upload-zone.multi-upload {
+            min-height: 120px;
+            padding: 12px;
+        }
+
+        .upload-zone.has-images .upload-icon,
+        .upload-zone.has-images .upload-text,
+        .upload-zone.has-images .upload-hint {
+            display: none;
+        }
+
+        .upload-preview-container {
+            display: none;
+            width: 100%;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-start;
+        }
+
+        .upload-zone.has-images .upload-preview-container {
+            display: flex;
+        }
+
+        .upload-preview-item {
+            width: calc(33.333% - 6px);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            background: var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-preview-item img {
+            max-width: 100%;
+            max-height: 150px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            display: block;
+        }
+
+        .upload-preview-item .remove-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 77, 79, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            color: white;
+            font-size: 12px;
+        }
+
+        .upload-preview-item:hover .remove-btn {
+            opacity: 1;
+        }
+
+        .upload-preview-item .image-index {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            padding: 2px 8px;
+            background: rgba(0, 214, 143, 0.9);
+            border-radius: var(--radius-sm);
+            color: var(--bg-primary);
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        .upload-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 16px;
+            color: var(--text-tertiary);
+            transition: all 0.3s ease;
+        }
+
+        .upload-zone:hover .upload-icon {
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .upload-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            transition: color 0.2s ease;
+        }
+
+        .upload-zone:hover .upload-text {
+            color: var(--text-primary);
+        }
+
+        .upload-hint {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            transition: color 0.2s ease;
+        }
+
+        .option-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .option-btn {
+            padding: 10px 18px;
+            background: linear-gradient(145deg, var(--bg-tertiary) 0%, rgba(26, 26, 26, 0.8) 100%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0, 214, 143, 0.15) 0%, rgba(0, 179, 119, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .option-btn:hover {
+            border-color: var(--border-light);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .option-btn:hover::before {
+            opacity: 0.5;
+        }
+
+        .option-btn.active {
+            background: linear-gradient(135deg, rgba(0, 214, 143, 0.18) 0%, rgba(0, 179, 119, 0.08) 100%);
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0, 214, 143, 0.2), inset 0 1px 0 rgba(0, 214, 143, 0.1);
+        }
+
+        .option-btn.active::before {
+            opacity: 1;
+        }
+
+        .resolution-info {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: linear-gradient(145deg, rgba(0, 214, 143, 0.1) 0%, rgba(0, 214, 143, 0.05) 100%);
+            border: 1px solid rgba(0, 214, 143, 0.2);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            color: var(--primary);
+            font-weight: 600;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .generate-section {
+            padding: 20px 24px 28px;
+            border-top: 1px solid var(--border);
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(20, 20, 20, 0.98) 100%);
+            position: relative;
+        }
+
+        .generate-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(0, 214, 143, 0.2) 50%, transparent 100%);
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 16px 28px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: none;
+            border-radius: var(--radius-md);
+            color: #000;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 214, 143, 0.3);
+        }
+
+        .generate-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .generate-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(0, 214, 143, 0.45);
+        }
+
+        .generate-btn:hover:not(:disabled)::before {
+            opacity: 1;
+        }
+
+        .generate-btn:active:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0, 214, 143, 0.35);
+        }
+
+        .generate-btn:disabled {
+            background: linear-gradient(145deg, var(--border) 0%, rgba(38, 38, 38, 0.8) 100%);
+            color: var(--text-tertiary);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .toolbar {
+            height: 64px;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(20, 20, 20, 0.98) 100%);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .toolbar::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(0, 214, 143, 0.3) 50%, transparent 100%);
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tab-btn {
+            padding: 8px 18px;
+            background: transparent;
+            border: none;
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0, 214, 143, 0.1) 0%, rgba(0, 179, 119, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+            transform: translateY(-1px);
+        }
+
+        .tab-btn:hover::before {
+            opacity: 1;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            background: linear-gradient(135deg, rgba(0, 214, 143, 0.12) 0%, rgba(0, 179, 119, 0.06) 100%);
+            box-shadow: inset 0 1px 0 rgba(0, 214, 143, 0.1), 0 2px 8px rgba(0, 214, 143, 0.15);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            right: 20%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            border-radius: 2px;
+        }
+
+        .toolbar-action {
+            padding: 8px 16px;
+            background: linear-gradient(145deg, var(--bg-tertiary) 0%, rgba(26, 26, 26, 0.8) 100%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .toolbar-action::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .toolbar-action:hover {
+            border-color: var(--border-light);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .toolbar-action:hover::before {
+            opacity: 1;
+        }
+
+        .toolbar-action.danger {
+            border-color: rgba(255, 77, 79, 0.4);
+            color: var(--danger);
+            background: linear-gradient(145deg, rgba(255, 77, 79, 0.08) 0%, rgba(26, 26, 26, 0.8) 100%);
+        }
+
+        .toolbar-action.danger:hover {
+            background: linear-gradient(145deg, rgba(255, 77, 79, 0.15) 0%, rgba(26, 26, 26, 0.8) 100%);
+            border-color: var(--danger);
+            box-shadow: 0 4px 12px rgba(255, 77, 79, 0.2);
+        }
+
+        .gallery-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 28px;
+            background: linear-gradient(180deg, var(--bg-primary) 0%, rgba(10, 10, 10, 0.98) 100%);
+            position: relative;
+        }
+
+        .gallery-section::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .gallery-section::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .gallery-section::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--border) 0%, var(--border-light) 100%);
+            border-radius: 4px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+
+        .gallery-section::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, var(--border-light) 0%, rgba(0, 214, 143, 0.3) 100%);
+        }
+
+        .gallery-empty {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .gallery-empty-icon {
+            width: 140px;
+            height: 140px;
+            margin-bottom: 28px;
+            opacity: 0.25;
+            filter: drop-shadow(0 0 40px rgba(0, 214, 143, 0.1));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .gallery-empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .gallery-empty-desc {
+            font-size: 14px;
+            color: var(--text-tertiary);
+            max-width: 300px;
+            line-height: 1.6;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .image-card {
+            background: linear-gradient(145deg, var(--bg-secondary) 0%, rgba(20, 20, 20, 0.95) 100%);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .image-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: var(--radius-lg);
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .image-card:hover {
+            border-color: rgba(0, 214, 143, 0.3);
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 214, 143, 0.1);
+        }
+
+        .image-card:hover::before {
+            opacity: 1;
+        }
+
+        .image-card-preview {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, rgba(26, 26, 26, 0.9) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-card-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .image-card:hover .image-card-preview img {
+            transform: scale(1.08);
+        }
+
+        .image-card-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 40%, transparent 70%);
+            opacity: 0;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: flex-end;
+            padding: 20px;
+        }
+
+        .image-card:hover .image-card-overlay {
+            opacity: 1;
+        }
+
+        .image-card.loading {
+            opacity: 0.8;
+        }
+
+        .loading-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            position: relative;
+        }
+
+        .loading-spinner::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-spinner::after {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border: 2px solid transparent;
+            border-top-color: rgba(0, 214, 143, 0.5);
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite reverse;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+            letter-spacing: 0.5px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .loading-progress {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            font-weight: 500;
+        }
+
+        .loading-cancel-btn {
+            margin-top: 16px;
+            padding: 8px 20px;
+            background: linear-gradient(145deg, rgba(255, 77, 79, 0.2) 0%, rgba(255, 77, 79, 0.1) 100%);
+            border: 1px solid rgba(255, 77, 79, 0.4);
+            border-radius: var(--radius-md);
+            color: var(--danger);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .loading-cancel-btn:hover {
+            background: linear-gradient(145deg, rgba(255, 77, 79, 0.4) 0%, rgba(255, 77, 79, 0.3) 100%);
+            border-color: var(--danger);
+            transform: scale(1.05);
+        }
+
+        .loading-cancel-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .image-card.cancelled .loading-content {
+            opacity: 0.6;
+        }
+
+        .image-card.cancelled .loading-text {
+            color: var(--danger);
+        }
+
+        .image-card-actions {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            transform: translateY(10px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .image-card:hover .image-card-actions {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .card-action-btn {
+            flex: 1;
+            padding: 10px 12px;
+            background: linear-gradient(145deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.06) 100%);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--radius-md);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .card-action-btn:hover {
+            background: linear-gradient(145deg, rgba(0, 214, 143, 0.9) 0%, rgba(0, 179, 119, 0.9) 100%);
+            border-color: transparent;
+            color: #000;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 214, 143, 0.3);
+        }
+
+        .card-action-btn.danger {
+            background: linear-gradient(145deg, rgba(255, 77, 79, 0.15) 0%, rgba(255, 77, 79, 0.08) 100%);
+            border-color: rgba(255, 77, 79, 0.3);
+            color: var(--danger);
+        }
+
+        .card-action-btn.danger:hover {
+            background: linear-gradient(145deg, rgba(255, 77, 79, 0.9) 0%, rgba(255, 77, 79, 0.8) 100%);
+            border-color: transparent;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(255, 77, 79, 0.3);
+        }
+
+        /* 删除按钮 - 右上角圆形 */
+        .image-card-delete {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, rgba(255, 77, 79, 0.9) 0%, rgba(255, 77, 79, 0.8) 100%);
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(255, 77, 79, 0.4);
+        }
+
+        .image-card:hover .image-card-delete {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .image-card-delete:hover {
+            background: linear-gradient(145deg, rgba(255, 77, 79, 1) 0%, rgba(255, 50, 50, 1) 100%);
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(255, 77, 79, 0.5);
+        }
+
+        .image-card-delete::before {
+            content: '×';
+            line-height: 1;
+        }
+
+        .image-card-info {
+            padding: 18px;
+            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.2) 100%);
+        }
+
+        .image-card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: 0.2px;
+        }
+
+        .image-card-meta {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .image-card-meta::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0.6;
+        }
+
+        .image-card.completed {
+            animation: cardComplete 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes cardComplete {
+            0% { transform: scale(0.98); border-color: var(--primary); box-shadow: 0 0 30px rgba(0, 214, 143, 0.3); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); border-color: var(--border); box-shadow: none; }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 14px 28px;
+            background: linear-gradient(145deg, var(--bg-secondary) 0%, rgba(20, 20, 20, 0.98) 100%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.03);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-color: rgba(82, 196, 26, 0.4);
+            background: linear-gradient(145deg, rgba(82, 196, 26, 0.1) 0%, rgba(20, 20, 20, 0.98) 100%);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(82, 196, 26, 0.15);
+        }
+
+        .toast.success::before {
+            content: '✓';
+            width: 20px;
+            height: 20px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .toast.error {
+            border-color: rgba(255, 77, 79, 0.4);
+            background: linear-gradient(145deg, rgba(255, 77, 79, 0.1) 0%, rgba(20, 20, 20, 0.98) 100%);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 77, 79, 0.15);
+        }
+
+        .toast.error::before {
+            content: '!';
+            width: 20px;
+            height: 20px;
+            background: var(--danger);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="nav-section">
+                <a href="../bumengongneng.html" class="back-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    返回部门
+                </a>
+            </div>
+
+            <div class="scene-section">
+                <div class="section-title">当前功能</div>
+                <div class="scene-name">
+                    <span class="scene-icon">🎽</span>
+                    服装复刻
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-group">
+                    <label class="form-label">模型选择</label>
+                    <div class="option-group" id="modelType">
+                        <button class="option-btn active" data-model="domestic">国产模型</button>
+                        <button class="option-btn" data-model="foreign">国外模型</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">服装图片 <span class="upload-count" id="clothingCount">0/1</span></label>
+                    <div class="upload-zone" id="clothingUpload" onclick="selectFile(this)" 
+                         ondragover="handleDragOver(event, this)" 
+                         ondragleave="handleDragLeave(event, this)" 
+                         ondrop="handleDrop(event, this)">
+                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <div class="upload-text">上传服装图片</div>
+                        <div class="upload-hint">最多1张，必须上传</div>
+                        <div class="upload-preview-container"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">复刻图片 <span class="upload-count" id="modelCount">0/10</span></label>
+                    <div class="upload-zone multi-upload" id="modelUpload" onclick="selectFile(this)"
+                         ondragover="handleDragOver(event, this)" 
+                         ondragleave="handleDragLeave(event, this)" 
+                         ondrop="handleDrop(event, this)">
+                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <div class="upload-text">上传复刻参考图</div>
+                        <div class="upload-hint" id="modelUploadHint">最多10张，点击添加</div>
+                        <div class="upload-preview-container"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">描述词<span class="char-limit-hint" id="clothingPromptHint">不能超过500个字</span></label>
+                    <textarea class="form-textarea" id="clothingPrompt" placeholder="将图1的服装复刻到图2中，不改变任何元素" maxlength="500">把图2的服装替换成图1的服装，其他任何元素保持不变</textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">图片画质</label>
+                    <div class="option-group" id="clothingQuality">
+                        <button class="option-btn" data-quality="2k">2K</button>
+                        <button class="option-btn active" data-quality="4k">4K</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">图片比例</label>
+                    <div class="option-group" id="clothingRatio">
+                        <button class="option-btn" data-ratio="1:1">1:1</button>
+                        <button class="option-btn" data-ratio="3:4">3:4</button>
+                        <button class="option-btn active" data-ratio="9:16">9:16</button>
+                        <button class="option-btn" data-ratio="16:9">16:9</button>
+                    </div>
+                    <div class="resolution-info" id="clothingResolution">3040 × 5504</div>
+                </div>
+            </div>
+
+            <div class="generate-section">
+                <button class="generate-btn" id="generateBtn">
+                    <span>开始生成</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="toolbar">
+                <div class="toolbar-left">
+                    <button class="tab-btn active" data-tab="all">全部图片</button>
+                    <button class="tab-btn" data-tab="favorite">收藏图片</button>
+                </div>
+                <div class="toolbar-right">
+                    <button class="toolbar-action" onclick="downloadAll()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        下载全部
+                    </button>
+                    <button class="toolbar-action danger" onclick="clearAll()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                        </svg>
+                        清空
+                    </button>
+                </div>
+            </header>
+
+            <section class="gallery-section">
+                <div class="gallery-empty" id="galleryEmpty">
+                    <svg class="gallery-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <path d="M21 15l-5-5L5 21"/>
+                    </svg>
+                    <div class="gallery-empty-title">暂无图片</div>
+                    <div class="gallery-empty-desc">在左侧上传服装和复刻图片，点击"开始生成"创建服装复刻效果</div>
+                </div>
+
+                <div class="gallery-grid" id="galleryGrid" style="display: none;"></div>
+            </section>
+        </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ==================== 模特换装功能 - 独立存储 ====================
+        const STORAGE_KEY_ALL = 'allImages_clothing';
+        const STORAGE_KEY_FAVORITE = 'favoriteImages_clothing';
+
+        let globalImageCounter = parseInt(localStorage.getItem('clothingImageCounter')) || 0;
+
+        let allImages = JSON.parse(localStorage.getItem(STORAGE_KEY_ALL)) || [];
+        let favoriteImages = JSON.parse(localStorage.getItem(STORAGE_KEY_FAVORITE)) || [];
+        let currentTab = 'all';
+        
+        // 清空标志 - 用于阻止清空后的生成任务添加图片
+        let isCleared = false;
+
+        const generationTimers = new Map();
+
+        // AbortController 管理 - 用于取消API请求
+        const abortControllers = new Map();
+
+        const uploadData = {
+            clothingUpload: [],
+            modelUpload: []
+        };
+
+        const clothingResolutions = {
+            '2k': {
+                '1:1': '2048 × 2048',
+                '3:4': '1728 × 2304',
+                '9:16': '1440 × 2560',
+                '16:9': '2560 × 1440'
+            },
+            '4k': {
+                '1:1': '4096 × 4096',
+                '3:4': '3520 × 4704',
+                '9:16': '3040 × 5504',
+                '16:9': '5504 × 3040'
+            }
+        };
+
+        const resolutionMap = {
+            '2k': {
+                '1:1': '2048x2048',
+                '3:4': '1728x2304',
+                '9:16': '1440x2560',
+                '16:9': '2560x1440'
+            },
+            '4k': {
+                '1:1': '4096x4096',
+                '3:4': '3520x4704',
+                '9:16': '3040x5504',
+                '16:9': '5504x3040'
+            }
+        };
+
+        let userApiKeys = {
+            doubao: '',
+            google: ''
+        };
+        let apiKeysLoaded = false;
+
+        async function verifyUser() {
+            const username = localStorage.getItem('username');
+            if (!username) {
+                window.location.href = '/qianduan/index.html';
+                return false;
+            }
+
+            try {
+                const response = await fetch(`/api/auth/verify?username=${encodeURIComponent(username)}`);
+                const result = await response.json();
+
+                if (!result.valid) {
+                    localStorage.removeItem('username');
+                    alert('您的账号已被删除或状态异常，请重新登录');
+                    window.location.href = '/qianduan/index.html';
+                    return false;
+                }
+
+                return true;
+            } catch (error) {
+                console.error('验证用户失败:', error);
+                return false;
+            }
+        }
+
+        async function loadUserApiKeys() {
+            const username = localStorage.getItem('username');
+            if (!username) {
+                console.warn('用户未登录，无法获取API密钥');
+                return { success: false, message: '用户未登录' };
+            }
+
+            try {
+                console.log('正在获取API密钥，用户:', username);
+                const response = await fetch(`/api/auth/keys?username=${encodeURIComponent(username)}`);
+                const result = await response.json();
+                console.log('API密钥响应:', result);
+
+                if (result.success && result.data) {
+                    userApiKeys.doubao = result.data.doubao_api_key || '';
+                    userApiKeys.google = result.data.google_api_key || '';
+                    apiKeysLoaded = true;
+                    console.log('API密钥加载成功:', {
+                        doubao: userApiKeys.doubao ? '已设置' : '未设置',
+                        google: userApiKeys.google ? '已设置' : '未设置'
+                    });
+                    return { success: true, data: userApiKeys };
+                } else {
+                    console.error('API密钥响应失败:', result);
+                    return { success: false, message: result.message || '获取密钥失败' };
+                }
+            } catch (error) {
+                console.error('获取API密钥失败:', error);
+                return { success: false, message: error.message };
+            }
+        }
+
+        // 页面加载时立即开始加载密钥，并阻塞等待完成
+        async function initPage() {
+            const valid = await verifyUser();
+            if (valid) {
+                // 显示加载状态
+                const generateBtn = document.getElementById('generateBtn');
+                if (generateBtn) {
+                    generateBtn.disabled = true;
+                    generateBtn.innerHTML = '<span>正在加载配置...</span>';
+                }
+
+                // 加载API密钥
+                const result = await loadUserApiKeys();
+
+                // 恢复按钮状态
+                if (generateBtn) {
+                    generateBtn.disabled = false;
+                    generateBtn.innerHTML = '<span>开始生成</span>';
+                }
+
+                if (!result.success) {
+                    console.error('API密钥加载失败:', result.message);
+                    showToast('API密钥加载失败，部分功能可能无法使用', 'error');
+                } else {
+                    console.log('页面初始化完成，API密钥已加载');
+                }
+            }
+        }
+
+        // 立即执行初始化
+        initPage();
+
+        const DOUBAO_API_URL = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
+
+        // ==================== 图片压缩处理 ====================
+        const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+        const TARGET_IMAGE_SIZE = 9 * 1024 * 1024; // 9MB
+
+        async function processImageFile(file) {
+            // 统一处理：检查文件大小
+            if (file.size <= MAX_IMAGE_SIZE) {
+                // 未超过10MB，不压缩
+                return await readFileAsDataURL(file);
+            }
+
+            // 超过10MB，需要压缩到9MB
+            showToast(`图片超过10MB，正在压缩...`, 'warning');
+            return await compressImage(file, TARGET_IMAGE_SIZE);
+        }
+
+        function readFileAsDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (event) => resolve(event.target.result);
+                reader.onerror = (error) => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function compressImage(file, targetSize) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                const url = URL.createObjectURL(file);
+
+                img.onload = () => {
+                    URL.revokeObjectURL(url);
+
+                    let width = img.width;
+                    let height = img.height;
+                    let quality = 0.9;
+                    let canvas = document.createElement('canvas');
+                    let ctx = canvas.getContext('2d');
+
+                    // 初始尺寸
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // 尝试压缩
+                    const tryCompress = () => {
+                        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        const size = getDataUrlSize(dataUrl);
+
+                        if (size <= targetSize || quality <= 0.1) {
+                            // 压缩完成或质量已降到最低
+                            resolve(dataUrl);
+                        } else {
+                            // 继续降低质量
+                            quality -= 0.1;
+                            tryCompress();
+                        }
+                    };
+
+                    // 如果尺寸过大，先缩小尺寸
+                    const maxDimension = 4096;
+                    if (width > maxDimension || height > maxDimension) {
+                        if (width > height) {
+                            height = Math.round(height * (maxDimension / width));
+                            width = maxDimension;
+                        } else {
+                            width = Math.round(width * (maxDimension / height));
+                            height = maxDimension;
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+                    }
+
+                    tryCompress();
+                };
+
+                img.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    reject(new Error('图片加载失败'));
+                };
+
+                img.src = url;
+            });
+        }
+
+        function getDataUrlSize(dataUrl) {
+            // 计算 base64 数据的大小
+            const base64 = dataUrl.split(',')[1];
+            const padding = base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0;
+            return (base64.length * 3 / 4) - padding;
+        }
+
+        // ==================== 选项按钮 ====================
+        document.querySelectorAll('.option-group').forEach(group => {
+            group.addEventListener('click', (e) => {
+                if (e.target.classList.contains('option-btn')) {
+                    group.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    if (group.id === 'clothingQuality' || group.id === 'clothingRatio') {
+                        updateClothingResolution();
+                    }
+                    // 模型类型切换时更新复刻图片上传限制
+                    if (group.id === 'modelType') {
+                        updateModelUploadLimit();
+                    }
+                }
+            });
+        });
+
+        // 更新服装图片上传限制显示
+        function updateClothingUploadLimit() {
+            // 服装图片只支持1张
+            const maxCount = 1;
+
+            // 获取当前数量
+            const clothingCount = uploadData.clothingUpload ? uploadData.clothingUpload.length : 0;
+
+            // 更新计数显示
+            const countElement = document.getElementById('clothingCount');
+            if (countElement) {
+                countElement.textContent = `${clothingCount}/${maxCount}`;
+                countElement.className = 'upload-count';
+                if (clothingCount >= maxCount) {
+                    countElement.classList.add('full');
+                }
+            }
+        }
+
+        // 更新复刻图片上传限制显示
+        function updateModelUploadLimit() {
+            const modelTypeBtn = document.querySelector('#modelType .option-btn.active');
+            const modelType = modelTypeBtn?.dataset?.model || 'domestic';
+
+            // 国产和国外模型下复刻图片都支持10张
+            const maxCount = 10;
+            const hintText = '最多10张，点击添加';
+
+            // 获取当前数量
+            const modelCount = uploadData.modelUpload ? uploadData.modelUpload.length : 0;
+
+            // 更新计数显示
+            const countElement = document.getElementById('modelCount');
+            if (countElement) {
+                countElement.textContent = `${modelCount}/${maxCount}`;
+                countElement.className = 'upload-count';
+                if (modelCount >= maxCount) {
+                    countElement.classList.add('full');
+                } else if (modelCount >= Math.floor(maxCount * 0.67)) {
+                    countElement.classList.add('warning');
+                }
+            }
+
+            // 更新提示文字
+            const hintElement = document.getElementById('modelUploadHint');
+            if (hintElement) {
+                hintElement.textContent = hintText;
+            }
+
+            // 如果切换到国外模型且复刻图片超过12张，给出提示
+            if (modelType === 'foreign' && modelCount > 12) {
+                showToast('切换到国外模型，复刻图片不能超过12张', 'warning');
+            }
+        }
+
+        // ==================== 描述词字数限制 ====================
+        const clothingPrompt = document.getElementById('clothingPrompt');
+        const clothingPromptHint = document.getElementById('clothingPromptHint');
+        clothingPrompt.addEventListener('input', () => {
+            if (clothingPrompt.value.length >= 500) {
+                clothingPromptHint.classList.add('show');
+            } else {
+                clothingPromptHint.classList.remove('show');
+            }
+        });
+
+        // ==================== 分辨率更新 ====================
+        function updateClothingResolution() {
+            const qualityBtn = document.querySelector('#clothingQuality .option-btn.active');
+            const ratioBtn = document.querySelector('#clothingRatio .option-btn.active');
+            const resolutionDisplay = document.getElementById('clothingResolution');
+            
+            if (qualityBtn && ratioBtn && resolutionDisplay) {
+                const quality = qualityBtn.dataset.quality;
+                const ratio = ratioBtn.dataset.ratio;
+                resolutionDisplay.textContent = clothingResolutions[quality][ratio];
+            }
+        }
+
+        // ==================== 文件上传 ====================
+        // 拖拽上传处理函数
+        function handleDragOver(event, element) {
+            event.preventDefault();
+            event.stopPropagation();
+            element.classList.add('drag-over');
+        }
+
+        function handleDragLeave(event, element) {
+            event.preventDefault();
+            event.stopPropagation();
+            element.classList.remove('drag-over');
+        }
+
+        function handleDrop(event, element) {
+            event.preventDefault();
+            event.stopPropagation();
+            element.classList.remove('drag-over');
+
+            const files = Array.from(event.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+            if (files.length === 0) {
+                showToast('请上传图片文件', 'error');
+                return;
+            }
+
+            const isMultiUpload = element.classList.contains('multi-upload');
+            const uploadId = element.id;
+
+            const modelTypeBtn = document.querySelector('#modelType .option-btn.active');
+            const modelType = modelTypeBtn?.dataset?.model || 'domestic';
+
+            let maxUploadCount = 1;
+            if (uploadId === 'modelUpload') {
+                maxUploadCount = 10;
+            }
+
+            let currentClothingCount = uploadData.clothingUpload ? uploadData.clothingUpload.length : 0;
+            if (currentClothingCount >= 1 && uploadId === 'clothingUpload') {
+                showToast('服装图片只能上传1张，请先删除现有图片', 'error');
+                return;
+            }
+
+            if (isMultiUpload && uploadData[uploadId] && uploadData[uploadId].length >= maxUploadCount) {
+                showToast(`最多只能上传${maxUploadCount}张图片`, 'warning');
+                return;
+            }
+
+            const clothingCount = uploadData.clothingUpload ? uploadData.clothingUpload.length : 0;
+            const modelCount = uploadData.modelUpload ? uploadData.modelUpload.length : 0;
+            const totalCount = clothingCount + modelCount;
+
+            if (modelType === 'domestic') {
+                if (totalCount >= 15) {
+                    showToast('国产模型下图片总数不能超过15张（含服装和复刻图片）', 'error');
+                    return;
+                }
+            } else {
+                if (totalCount >= 12) {
+                    showToast('国外模型下图片总数不能超过12张（含服装和复刻图片）', 'error');
+                    return;
+                }
+            }
+
+            if (isMultiUpload) {
+                const currentCount = uploadData[uploadId] ? uploadData[uploadId].length : 0;
+                let remainingSlots = maxUploadCount - currentCount;
+
+                const totalLimit = modelType === 'domestic' ? 15 : 12;
+                const totalRemaining = totalLimit - totalCount;
+                remainingSlots = Math.min(remainingSlots, totalRemaining);
+
+                const filesToProcess = files.slice(0, remainingSlots);
+
+                if (files.length > remainingSlots) {
+                    showToast(`已拖拽 ${files.length} 张图片，仅添加前 ${remainingSlots} 张`, 'warning');
+                }
+
+                filesToProcess.forEach((file) => {
+                    processImageFile(file).then(processedImageSrc => {
+                        addImagePreview(element, processedImageSrc, file, uploadId);
+                    }).catch(error => {
+                        showToast(`图片处理失败: ${error.message}`, 'error');
+                    });
+                });
+            } else {
+                if (files.length > 1) {
+                    showToast('服装图片只能上传1张，已选择第一张', 'warning');
+                }
+                const file = files[0];
+                processImageFile(file).then(processedImageSrc => {
+                    addImagePreview(element, processedImageSrc, file, uploadId);
+                }).catch(error => {
+                    showToast(`图片处理失败: ${error.message}`, 'error');
+                });
+            }
+        }
+
+        function selectFile(element) {
+            const isMultiUpload = element.classList.contains('multi-upload');
+            const uploadId = element.id;
+
+            // 获取当前模型类型
+            const modelTypeBtn = document.querySelector('#modelType .option-btn.active');
+            const modelType = modelTypeBtn?.dataset?.model || 'domestic';
+
+            // 根据上传框类型确定最大上传数量
+            let maxUploadCount = 1; // 服装图片默认1张
+            if (uploadId === 'modelUpload') {
+                maxUploadCount = 10; // 复刻图片支持10张
+            }
+
+            // 检查服装图片数量限制 - 严格限制只能1张
+            let currentClothingCount = uploadData.clothingUpload ? uploadData.clothingUpload.length : 0;
+            if (currentClothingCount >= 1 && uploadId === 'clothingUpload') {
+                showToast('服装图片只能上传1张，请先删除现有图片', 'error');
+                return;
+            }
+
+            if (isMultiUpload && uploadData[uploadId] && uploadData[uploadId].length >= maxUploadCount) {
+                showToast(`最多只能上传${maxUploadCount}张图片`, 'warning');
+                return;
+            }
+
+            // 检查总图片数量限制
+            const clothingCount = uploadData.clothingUpload ? uploadData.clothingUpload.length : 0;
+            const modelCount = uploadData.modelUpload ? uploadData.modelUpload.length : 0;
+            const totalCount = clothingCount + modelCount;
+
+            if (modelType === 'domestic') {
+                // 国产模型：总数量不超过15张
+                if (totalCount >= 15) {
+                    showToast('国产模型下图片总数不能超过15张（含服装和复刻图片）', 'error');
+                    return;
+                }
+            } else {
+                // 国外模型：总数量不超过12张
+                if (totalCount >= 12) {
+                    showToast('国外模型下图片总数不能超过12张（含服装和复刻图片）', 'error');
+                    return;
+                }
+            }
+
+            let fileInput = element.querySelector('input[type="file"]');
+            if (!fileInput) {
+                fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.accept = 'image/*';
+                fileInput.style.display = 'none';
+                element.appendChild(fileInput);
+
+                fileInput.addEventListener('change', function(e) {
+                    const files = Array.from(e.target.files);
+                    if (files.length === 0) return;
+
+                    if (isMultiUpload) {
+                        const currentCount = uploadData[uploadId] ? uploadData[uploadId].length : 0;
+                        let remainingSlots = maxUploadCount - currentCount;
+
+                        const clothingCount = uploadData.clothingUpload ? uploadData.clothingUpload.length : 0;
+                        const modelCount = uploadData.modelUpload ? uploadData.modelUpload.length : 0;
+                        const totalCount = clothingCount + modelCount;
+                        const totalLimit = modelType === 'domestic' ? 15 : 12;
+                        const totalRemaining = totalLimit - totalCount;
+                        remainingSlots = Math.min(remainingSlots, totalRemaining);
+
+                        const filesToProcess = files.slice(0, remainingSlots);
+
+                        if (files.length > remainingSlots) {
+                            showToast(`已选择 ${files.length} 张图片，仅添加前 ${remainingSlots} 张`, 'warning');
+                        }
+
+                        filesToProcess.forEach((file) => {
+                            processImageFile(file).then(processedImageSrc => {
+                                addImagePreview(element, processedImageSrc, file, uploadId);
+                            }).catch(error => {
+                                showToast(`图片处理失败: ${error.message}`, 'error');
+                            });
+                        });
+                    } else {
+                        if (files.length > 1) {
+                            showToast('服装图片只能上传1张，已选择第一张', 'warning');
+                        }
+                        const file = files[0];
+                        processImageFile(file).then(processedImageSrc => {
+                            addImagePreview(element, processedImageSrc, file, uploadId);
+                        }).catch(error => {
+                            showToast(`图片处理失败: ${error.message}`, 'error');
+                        });
+                    }
+                });
+            }
+
+            fileInput.multiple = isMultiUpload;
+            fileInput.click();
+        }
+
+        function addImagePreview(container, imageSrc, file, uploadId) {
+            if (!uploadData[uploadId]) {
+                uploadData[uploadId] = [];
+            }
+
+            const newImage = {
+                src: imageSrc,
+                file: file,
+                id: Date.now() + Math.random()
+            };
+            uploadData[uploadId].push(newImage);
+
+            // 计算全局排序索引：服装图片从1开始，复刻图片接在服装图片后面
+            const clothingCount = uploadData.clothingUpload ? uploadData.clothingUpload.length : 0;
+            const modelCount = uploadData.modelUpload ? uploadData.modelUpload.length : 0;
+
+            let index;
+            if (uploadId === 'clothingUpload') {
+                // 服装图片：按在服装数组中的位置排序
+                index = uploadData[uploadId].length;
+            } else {
+                // 复刻图片：接在服装图片后面
+                index = clothingCount + uploadData[uploadId].length;
+            }
+
+            const previewContainer = container.querySelector('.upload-preview-container');
+
+            const previewItem = document.createElement('div');
+            previewItem.className = 'upload-preview-item';
+            previewItem.dataset.imageId = newImage.id;
+
+            previewItem.innerHTML = `
+                <div class="image-index">图${index}</div>
+                <img src="${imageSrc}" alt="预览">
+                <div class="remove-btn" onclick="removeImage(event, '${uploadId}', ${newImage.id})">×</div>
+            `;
+
+            previewContainer.appendChild(previewItem);
+            container.classList.add('has-images');
+            updateUploadCount(uploadId);
+            showToast(`已添加: ${file.name}`);
+        }
+
+        function removeImage(event, uploadId, imageId) {
+            event.stopPropagation();
+
+            if (uploadData[uploadId]) {
+                uploadData[uploadId] = uploadData[uploadId].filter(img => img.id !== imageId);
+
+                // 重新渲染所有上传框，更新全局排序
+                refreshAllImagePreviews();
+
+                const container = document.getElementById(uploadId);
+                if (uploadData[uploadId].length === 0) {
+                    container.classList.remove('has-images');
+                }
+
+                updateUploadCount(uploadId);
+                showToast('已移除图片');
+            }
+        }
+
+        // 重新渲染所有图片预览，更新全局排序
+        function refreshAllImagePreviews() {
+            const clothingContainer = document.getElementById('clothingUpload');
+            const modelContainer = document.getElementById('modelUpload');
+
+            // 清空并重新渲染服装图片
+            if (clothingContainer && uploadData.clothingUpload) {
+                const clothingPreviewContainer = clothingContainer.querySelector('.upload-preview-container');
+                clothingPreviewContainer.innerHTML = '';
+
+                uploadData.clothingUpload.forEach((img, idx) => {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'upload-preview-item';
+                    previewItem.dataset.imageId = img.id;
+
+                    previewItem.innerHTML = `
+                        <div class="image-index">图${idx + 1}</div>
+                        <img src="${img.src}" alt="预览">
+                        <div class="remove-btn" onclick="removeImage(event, 'clothingUpload', ${img.id})">×</div>
+                    `;
+
+                    clothingPreviewContainer.appendChild(previewItem);
+                });
+            }
+
+            // 清空并重新渲染复刻图片（接在服装图片后面排序）
+            if (modelContainer && uploadData.modelUpload) {
+                const modelPreviewContainer = modelContainer.querySelector('.upload-preview-container');
+                modelPreviewContainer.innerHTML = '';
+
+                const clothingCount = uploadData.clothingUpload ? uploadData.clothingUpload.length : 0;
+
+                uploadData.modelUpload.forEach((img, idx) => {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'upload-preview-item';
+                    previewItem.dataset.imageId = img.id;
+
+                    previewItem.innerHTML = `
+                        <div class="image-index">图${clothingCount + idx + 1}</div>
+                        <img src="${img.src}" alt="预览">
+                        <div class="remove-btn" onclick="removeImage(event, 'modelUpload', ${img.id})">×</div>
+                    `;
+
+                    modelPreviewContainer.appendChild(previewItem);
+                });
+            }
+        }
+
+        function updateUploadCount(uploadId) {
+            const count = uploadData[uploadId] ? uploadData[uploadId].length : 0;
+
+            // 获取当前模型类型
+            const modelTypeBtn = document.querySelector('#modelType .option-btn.active');
+            const modelType = modelTypeBtn?.dataset?.model || 'domestic';
+
+            // 根据上传框类型确定最大上传数量
+            let maxUploadCount;
+            if (uploadId === 'clothingUpload') {
+                maxUploadCount = 1; // 服装图片限制1张
+            } else {
+                maxUploadCount = 10; // 复刻图片限制10张
+            }
+
+            const countElement = document.getElementById(uploadId === 'clothingUpload' ? 'clothingCount' : 'modelCount');
+            if (countElement) {
+                countElement.textContent = `${count}/${maxUploadCount}`;
+                countElement.className = 'upload-count';
+                if (count >= maxUploadCount) {
+                    countElement.classList.add('full');
+                } else if (count >= Math.floor(maxUploadCount * 0.67)) {
+                    countElement.classList.add('warning');
+                }
+            }
+        }
+
+        // ==================== 图片预加载 - LRU缓存 ====================
+        class LRUCache {
+            constructor(maxSize = 50) {
+                this.maxSize = maxSize;
+                this.cache = new Map();
+            }
+
+            get(key) {
+                if (!this.cache.has(key)) return null;
+                const value = this.cache.get(key);
+                this.cache.delete(key);
+                this.cache.set(key, value);
+                return value;
+            }
+
+            set(key, value) {
+                if (this.cache.has(key)) {
+                    this.cache.delete(key);
+                } else if (this.cache.size >= this.maxSize) {
+                    const firstKey = this.cache.keys().next().value;
+                    const firstValue = this.cache.get(firstKey);
+                    if (firstValue && firstValue.img) {
+                        firstValue.img.src = '';
+                        firstValue.img.onload = null;
+                        firstValue.img.onerror = null;
+                    }
+                    this.cache.delete(firstKey);
+                }
+                this.cache.set(key, value);
+            }
+
+            has(key) {
+                return this.cache.has(key);
+            }
+
+            delete(key) {
+                const value = this.cache.get(key);
+                if (value && value.img) {
+                    value.img.src = '';
+                    value.img.onload = null;
+                    value.img.onerror = null;
+                }
+                this.cache.delete(key);
+            }
+
+            clear() {
+                for (const [key, value] of this.cache) {
+                    if (value && value.img) {
+                        value.img.src = '';
+                        value.img.onload = null;
+                        value.img.onerror = null;
+                    }
+                }
+                this.cache.clear();
+            }
+
+            get size() {
+                return this.cache.size;
+            }
+        }
+
+        const imagePreloadCache = new LRUCache(50);
+
+        function preloadImage(url) {
+            const cached = imagePreloadCache.get(url);
+            if (cached) {
+                if (typeof cached === 'object' && cached.loaded) {
+                    return Promise.resolve(url);
+                }
+                return cached;
+            }
+
+            const promise = new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    imagePreloadCache.set(url, { url, loaded: true, img });
+                    resolve(url);
+                };
+                img.onerror = () => {
+                    imagePreloadCache.delete(url);
+                    reject(new Error(`Failed to load: ${url}`));
+                };
+                img.src = url;
+            });
+
+            imagePreloadCache.set(url, promise);
+            return promise;
+        }
+
+        // ==================== IntersectionObserver 懒加载 ====================
+        const lazyLoadObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    const src = img.dataset.src;
+                    if (src && img.src !== src) {
+                        img.src = src;
+                        img.style.opacity = '0';
+                        img.onload = () => {
+                            img.style.opacity = '1';
+                        };
+                        lazyLoadObserver.unobserve(img);
+                    }
+                }
+            });
+        }, {
+            rootMargin: '50px',
+            threshold: 0.01
+        });
+
+        function observeLazyImage(imgElement) {
+            if ('IntersectionObserver' in window) {
+                lazyLoadObserver.observe(imgElement);
+            } else {
+                imgElement.src = imgElement.dataset.src;
+            }
+        }
+
+        // ==================== localStorage 批量写入优化 ====================
+        const localStorageCache = {
+            allImagesDirty: false,
+            favoriteImagesDirty: false,
+            writeTimeout: null,
+            
+            markDirty(key) {
+                if (key === STORAGE_KEY_ALL) this.allImagesDirty = true;
+                if (key === STORAGE_KEY_FAVORITE) this.favoriteImagesDirty = true;
+                
+                if (!this.writeTimeout) {
+                    this.writeTimeout = setTimeout(() => {
+                        this.flush();
+                    }, 300);
+                }
+            },
+            
+            flush() {
+                if (this.allImagesDirty) {
+                    localStorage.setItem(STORAGE_KEY_ALL, JSON.stringify(allImages));
+                    this.allImagesDirty = false;
+                }
+                if (this.favoriteImagesDirty) {
+                    localStorage.setItem(STORAGE_KEY_FAVORITE, JSON.stringify(favoriteImages));
+                    this.favoriteImagesDirty = false;
+                }
+                this.writeTimeout = null;
+            },
+            
+            forceFlush() {
+                if (this.writeTimeout) {
+                    clearTimeout(this.writeTimeout);
+                }
+                this.flush();
+            }
+        };
+
+        window.addEventListener('beforeunload', () => {
+            localStorageCache.forceFlush();
+        });
+
+        // ==================== 生成队列管理 ====================
+        const generationQueue = {
+            queue: [],
+            isProcessing: false,
+            foreignTasks: [], // 存储国外模型任务
+            
+            addTask(params) {
+                return new Promise((resolve, reject) => {
+                    this.queue.push({ params, resolve, reject });
+                    if (!this.isProcessing) {
+                        this.processNext();
+                    }
+                });
+            },
+            
+            clear() {
+                this.queue = [];
+                this.foreignTasks = [];
+            },
+            
+            async processNext() {
+                if (this.queue.length === 0) {
+                    this.isProcessing = false;
+                    return;
+                }
+
+                this.isProcessing = true;
+                const task = this.queue.shift();
+
+                // 国外模型：直接执行（已在startGeneration中并发调用）
+                if (task.params.modelType === 'foreign') {
+                    try {
+                        const result = await callGoogleAPI(task.params);
+                        task.resolve(result);
+                    } catch (error) {
+                        task.reject(error);
+                    } finally {
+                        this.processNext();
+                    }
+                } else {
+                    // 国内模型保持串行处理
+                    try {
+                        const result = await callDoubaoAPI(task.params);
+                        task.resolve(result);
+                    } catch (error) {
+                        task.reject(error);
+                    } finally {
+                        this.processNext();
+                    }
+                }
+            },
+            
+            async processForeignTasksInParallel() {
+                if (this.foreignTasks.length === 0) return;
+                
+                const CONCURRENT_LIMIT = 5; // 最大并发数
+                const totalTasks = this.foreignTasks.length;
+                
+                console.log(`【并行处理】模特图片总数: ${totalTasks}张`);
+                
+                // 分批处理，每批最多 CONCURRENT_LIMIT 个
+                const batches = [];
+                for (let i = 0; i < totalTasks; i += CONCURRENT_LIMIT) {
+                    batches.push(this.foreignTasks.slice(i, i + CONCURRENT_LIMIT));
+                }
+                
+                // 显示分批计划
+                const batchInfo = batches.map((batch, idx) => `第${idx + 1}批:${batch.length}张`).join(', ');
+                console.log(`【并行处理】分批计划: ${batchInfo}`);
+                
+                let successCount = 0;
+                let failCount = 0;
+                
+                // 逐批处理 - 每批使用1个API调用，n=该批图片数量
+                for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+                    const batch = batches[batchIndex];
+                    const batchSize = batch.length;
+                    
+                    console.log(`【并行处理】开始第 ${batchIndex + 1}/${batches.length} 批，调用1个API生成${batchSize}张图`);
+                    
+                    try {
+                        // 合并该批所有任务的参数
+                        const firstTask = batch[0];
+                        const mergedParams = {
+                            ...firstTask.params,
+                            imageCount: batchSize,  // n = 该批图片数量
+                            taskCards: batch.map(t => t.params.taskCards[0]).filter(Boolean)  // 合并所有taskCards
+                        };
+                        
+                        // 调用1个API生成多张图
+                        const result = await callGoogleAPI(mergedParams);
+                        
+                        // 为每个任务分配结果
+                        batch.forEach((task, index) => {
+                            if (result.data && result.data[index]) {
+                                task.resolve({ data: [result.data[index]] });
+                            } else {
+                                task.reject(new Error('未获取到生成结果'));
+                            }
+                        });
+                        
+                        successCount += batchSize;
+                        console.log(`【并行处理】第 ${batchIndex + 1} 批完成，生成 ${result.data?.length || 0} 张图`);
+                    } catch (error) {
+                        // 整批失败
+                        batch.forEach(task => task.reject(error));
+                        failCount += batchSize;
+                        console.error(`【并行处理】第 ${batchIndex + 1} 批失败:`, error);
+                    }
+                }
+                
+                console.log(`【并行处理】全部完成: ${successCount} 成功, ${failCount} 失败`);
+                
+                // 清空国外模型任务列表
+                this.foreignTasks = [];
+            }
+        };
+
+        // ==================== API 调用 ====================
+        function buildPrompt(basePrompt, quality, ratio) {
+            // 构建画质描述
+            const qualityDesc = quality === '4k' ? '4K超高清' : '2K高清';
+
+            // 构建比例描述
+            const ratioDesc = `图片比例：${ratio}`;
+
+            return `图片画质：${qualityDesc}\n2. ${ratioDesc}\n用户描述：${basePrompt}`;
+        }
+
+        async function handleStreamResponse(response, taskCards) {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let result = { data: [] };
+            let lastImageTime = null;
+
+            try {
+                while (true) {
+                    // 检查是否已被取消
+                    const firstCardId = taskCards[0]?.dataset.cardId;
+                    if (firstCardId && !abortControllers.has(firstCardId.toString())) {
+                        console.log('检测到取消请求，停止流式读取');
+                        reader.cancel();
+                        break;
+                    }
+
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        const trimmedLine = line.trim();
+                        if (!trimmedLine) continue;
+
+                        if (trimmedLine.startsWith('data: ')) {
+                            const data = trimmedLine.slice(6);
+                            if (data === '[DONE]') continue;
+
+                            try {
+                                const parsed = JSON.parse(data);
+
+                                // 支持多种图片生成完成的事件类型
+                                const isImageComplete =
+                                    parsed.type === 'image_generation.partial_succeeded' ||
+                                    parsed.type === 'image_generation.succeeded' ||
+                                    (parsed.url && !parsed.type);
+
+                                if (isImageComplete && parsed.url) {
+                                    // 再次检查是否已被取消
+                                    if (firstCardId && !abortControllers.has(firstCardId.toString())) {
+                                        console.log('检测到取消请求，跳过图片更新');
+                                        continue;
+                                    }
+
+                                    const currentTime = Date.now();
+                                    const imageData = {
+                                        url: parsed.url,
+                                        revised_prompt: parsed.revised_prompt || ''
+                                    };
+                                    result.data.push(imageData);
+                                    preloadImage(parsed.url);
+
+                                    const cardIndex = result.data.length - 1;
+                                    if (taskCards[cardIndex]) {
+                                        const cardId = taskCards[cardIndex].dataset.cardId;
+                                        if (cardId) {
+                                            const startTime = generationTimers.get(cardId.toString());
+                                            if (startTime) {
+                                                let actualDuration;
+                                                if (lastImageTime === null) {
+                                                    actualDuration = (currentTime - startTime) / 1000;
+                                                } else {
+                                                    actualDuration = (currentTime - lastImageTime) / 1000;
+                                                }
+                                                generationTimers.set(`duration_${cardId}`, actualDuration);
+                                            }
+                                        }
+                                        updateImageCard(taskCards[cardIndex], imageData, result.data.length);
+                                        lastImageTime = currentTime;
+                                    }
+                                }
+                            } catch (e) {
+                                console.warn('解析流数据失败:', e);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.log('请求已被取消');
+                } else {
+                    throw error;
+                }
+            } finally {
+                reader.releaseLock();
+            }
+            return result;
+        }
+
+        async function callDoubaoAPI(params) {
+            // 调用前验证用户是否有效
+            const username = localStorage.getItem('username');
+            if (!username) {
+                throw new Error('用户未登录');
+            }
+
+            try {
+                const verifyResponse = await fetch(`/api/auth/verify?username=${encodeURIComponent(username)}`);
+                const verifyResult = await verifyResponse.json();
+                if (!verifyResult.valid) {
+                    localStorage.removeItem('username');
+                    alert('您的账号已被删除或状态异常，请重新登录');
+                    window.location.href = '/qianduan/index.html';
+                    throw new Error('用户验证失败');
+                }
+            } catch (error) {
+                if (error.message === '用户验证失败') {
+                    throw error;
+                }
+                console.warn('验证请求失败，继续调用API:', error);
+            }
+
+            const { prompt, quality, ratio, taskCards, referenceImages, imageCount } = params;
+            const fullPrompt = buildPrompt(prompt);
+            const size = resolutionMap[quality]?.[ratio] || '1440x2560';
+
+            // AbortController 管理
+            const controllers = [];
+
+            // 构建请求体
+            const requestBody = {
+                model: 'doubao-seedream-4-5-251128',
+                prompt: fullPrompt,
+                max_images: imageCount || 1,
+                size: size,
+                stream: true,
+                sequential_image_generation: 'auto',
+                watermark: false
+            };
+
+            // 如果有参考图片，压缩后添加到请求中
+            if (referenceImages && referenceImages.length > 0) {
+                const compressedImages = [];
+                for (let i = 0; i < referenceImages.length; i++) {
+                    const imageUrl = referenceImages[i];
+                    try {
+                        // 将 base64 data URL 转换为 Blob
+                        const response = await fetch(imageUrl);
+                        let blob = await response.blob();
+                        
+                        // 超过10MB才压缩，压缩目标为9MB
+                        blob = await compressImageToSize(blob, 9, 10);
+                        
+                        // 转回 base64
+                        const base64 = await blobToBase64(blob);
+                        compressedImages.push(base64);
+                    } catch (error) {
+                        console.warn(`图片 ${i + 1} 压缩失败，使用原图:`, error);
+                        compressedImages.push(imageUrl);
+                    }
+                }
+                requestBody.image = compressedImages;
+            }
+
+            taskCards.forEach((card) => {
+                const cardId = card.dataset.cardId;
+                if (cardId) {
+                    const controller = new AbortController();
+                    abortControllers.set(cardId.toString(), controller);
+                    controllers.push({ cardId, controller });
+                    generationTimers.set(cardId.toString(), Date.now());
+                }
+            });
+
+            const mainController = controllers[0]?.controller;
+
+            const response = await fetch(DOUBAO_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userApiKeys.doubao}`
+                },
+                body: JSON.stringify(requestBody),
+                signal: mainController?.signal
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || `HTTP ${response.status}`);
+            }
+
+            return await handleStreamResponse(response, taskCards);
+        }
+
+        // ==================== 谷歌API调用（国外模型） ====================
+        async function callGoogleAPI(params) {
+            // 调用前验证用户是否有效
+            const username = localStorage.getItem('username');
+            if (!username) {
+                throw new Error('用户未登录');
+            }
+
+            try {
+                const verifyResponse = await fetch(`/api/auth/verify?username=${encodeURIComponent(username)}`);
+                const verifyResult = await verifyResponse.json();
+                if (!verifyResult.valid) {
+                    localStorage.removeItem('username');
+                    alert('您的账号已被删除或状态异常，请重新登录');
+                    window.location.href = '/qianduan/index.html';
+                    throw new Error('用户验证失败');
+                }
+            } catch (error) {
+                if (error.message === '用户验证失败') {
+                    throw error;
+                }
+                console.warn('验证请求失败，继续调用API:', error);
+            }
+
+            const { prompt, quality, ratio, taskCards, referenceImages, imageCount } = params;
+
+            // 打印输入参数
+            console.log('【谷歌API调用】输入参数:', {
+                prompt,
+                quality,
+                ratio,
+                imageCount,
+                referenceImagesCount: referenceImages?.length || 0,
+                taskCardsCount: taskCards?.length || 0
+            });
+
+            // T8Star API 配置
+            const API_URL = 'https://ai.t8star.cn/v1/images/edits';
+            const MODEL = 'nano-banana-2-4k';
+
+            // 构建提示词（传入画质和比例参数）
+            const fullPrompt = buildPrompt(prompt, quality, ratio);
+
+            // 根据 quality 映射到 imageSize (1K, 2K, 4K)
+            const imageSize = quality === '4k' ? '4K' : (quality === '2k' ? '2K' : '1K');
+
+            // 使用 multipart/form-data 格式
+            const formData = new FormData();
+            formData.append('model', MODEL);
+            formData.append('prompt', fullPrompt);
+            formData.append('size', imageSize);
+            formData.append('aspect_ratio', ratio);
+            formData.append('n', '1');  // 每个API调用生成1张图
+            formData.append('response_format', 'b64_json');
+
+            console.log('API 请求配置:', { model: MODEL, imageSize, aspectRatio: ratio, quality });
+
+            // 添加参考图片
+            if (referenceImages && referenceImages.length > 0) {
+                for (let i = 0; i < referenceImages.length; i++) {
+                    try {
+                        // 将 base64 data URL 转换为 Blob
+                        const imageUrl = referenceImages[i];
+                        const blob = await dataURLToBlob(imageUrl);
+                        formData.append('image', blob, `image_${i}.jpg`);
+                    } catch (error) {
+                        console.warn('转换图片失败:', error);
+                        throw new Error(`图片转换失败: ${error.message}`);
+                    }
+                }
+
+                console.log('【谷歌API调用】使用 multipart/form-data 方式传递图片:', {
+                    imageCount: referenceImages.length
+                });
+            }
+
+            // 设置计时器和 AbortController
+            const controllers = [];
+            taskCards.forEach((card) => {
+                const cardId = card.dataset.cardId;
+                if (cardId) {
+                    const controller = new AbortController();
+                    abortControllers.set(cardId.toString(), controller);
+                    controllers.push({ cardId, controller });
+                    generationTimers.set(cardId.toString(), Date.now());
+                }
+            });
+
+            const mainController = controllers[0]?.controller;
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${userApiKeys.google}`
+                },
+                body: formData,
+                signal: mainController?.signal
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || `HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // 调试日志：打印完整响应
+            console.log('API 响应:', JSON.stringify(data, null, 2));
+
+            // 处理 OpenAI 兼容格式响应 (dalle/edits)
+            const result = { data: [] };
+
+            // 检查是否已被取消
+            const firstCardId = taskCards[0]?.dataset?.cardId;
+            if (firstCardId && !abortControllers.has(firstCardId.toString())) {
+                console.log('检测到取消请求，跳过处理响应');
+                return result;
+            }
+
+            // 检查 OpenAI 格式响应 (data array)
+            if (data.data && Array.isArray(data.data)) {
+                for (let i = 0; i < data.data.length; i++) {
+                    // 检查是否已被取消
+                    if (firstCardId && !abortControllers.has(firstCardId.toString())) {
+                        console.log('检测到取消请求，停止处理图片');
+                        break;
+                    }
+
+                    const item = data.data[i];
+                    // 支持URL和Base64两种格式
+                    let imgUrl = item.url || '';
+                    if (item.b64_json) {
+                        imgUrl = `data:image/png;base64,${item.b64_json}`;
+                    }
+                    
+                    if (imgUrl) {
+                        result.data.push({
+                            url: imgUrl,
+                            revised_prompt: item.revised_prompt || ''
+                        });
+
+                        // 更新卡片
+                        if (taskCards[i]) {
+                            const cardId = taskCards[i].dataset.cardId;
+                            if (cardId) {
+                                const startTime = generationTimers.get(cardId.toString());
+                                if (startTime) {
+                                    const duration = (Date.now() - startTime) / 1000;
+                                    generationTimers.set(`duration_${cardId}`, duration);
+                                }
+                            }
+                            updateImageCard(taskCards[i], result.data[i], result.data.length);
+                        }
+                    }
+                }
+            }
+            // 检查 Gemini 格式响应 (candidates)
+            else if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                const parts = data.candidates[0].content.parts;
+                console.log('API parts:', JSON.stringify(parts, null, 2));
+
+                for (const part of parts) {
+                    // 检查是否已被取消
+                    if (firstCardId && !abortControllers.has(firstCardId.toString())) {
+                        console.log('检测到取消请求，停止处理图片');
+                        break;
+                    }
+
+                    // 检查是否是图片数据 (base64)
+                    if (part.inlineData && part.inlineData.data) {
+                        const imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                        result.data.push({
+                            url: imageUrl,
+                            revised_prompt: ''
+                        });
+
+                        // 更新卡片
+                        const cardIndex = result.data.length - 1;
+                        if (taskCards[cardIndex]) {
+                            const cardId = taskCards[cardIndex].dataset.cardId;
+                            if (cardId) {
+                                const startTime = generationTimers.get(cardId.toString());
+                                if (startTime) {
+                                    const duration = (Date.now() - startTime) / 1000;
+                                    generationTimers.set(`duration_${cardId}`, duration);
+                                }
+                            }
+                            updateImageCard(taskCards[cardIndex], result.data[cardIndex], result.data.length);
+                        }
+                    } else if (part.text) {
+                        console.log('API 文本响应:', part.text);
+                    }
+                }
+            }
+
+            // 检查是否成功生成图片
+            if (result.data.length === 0) {
+                throw new Error('未在响应中找到生成的图片，请检查模型是否支持图像生成');
+            }
+
+            // 打印返回结果
+            console.log('【谷歌API调用】返回结果:', {
+                success: true,
+                imageCount: result.data.length,
+                images: result.data.map((img, idx) => ({
+                    index: idx,
+                    urlLength: img.url?.length || 0,
+                    revised_prompt: img.revised_prompt
+                }))
+            });
+
+            return result;
+        }
+
+        // 将 Blob 转换为 base64 data URL
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        // 将 base64 data URL 转换为 Blob（不使用 fetch）
+        function dataURLToBlob(dataURL) {
+            return new Promise((resolve, reject) => {
+                try {
+                    const arr = dataURL.split(',');
+                    const mime = arr[0].match(/:(.*?);/)[1];
+                    const bstr = atob(arr[1]);
+                    let n = bstr.length;
+                    const u8arr = new Uint8Array(n);
+                    while (n--) {
+                        u8arr[n] = bstr.charCodeAt(n);
+                    }
+                    resolve(new Blob([u8arr], { type: mime }));
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+
+        // 压缩图片到指定大小以下
+        async function compressImageToSize(blob, targetSizeMB = 8, triggerSizeMB = 10, maxWidth = 2048, maxHeight = 2048) {
+            const triggerSizeBytes = triggerSizeMB * 1024 * 1024;
+            const targetSizeBytes = targetSizeMB * 1024 * 1024;
+            
+            // 如果图片小于触发压缩的大小（10MB），直接返回
+            if (blob.size <= triggerSizeBytes) {
+                return blob;
+            }
+            
+            console.log(`图片需要压缩: ${(blob.size / 1024 / 1024).toFixed(2)}MB > ${triggerSizeMB}MB，目标大小: ${targetSizeMB}MB`);
+            
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                const url = URL.createObjectURL(blob);
+                
+                img.onload = () => {
+                    URL.revokeObjectURL(url);
+                    
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    // 限制最大尺寸
+                    if (width > maxWidth || height > maxHeight) {
+                        const ratio = Math.min(maxWidth / width, maxHeight / height);
+                        width = Math.floor(width * ratio);
+                        height = Math.floor(height * ratio);
+                    }
+                    
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // 尝试不同的质量来压缩，直到达到目标大小
+                    let quality = 0.9;
+                    const tryCompress = () => {
+                        canvas.toBlob((compressedBlob) => {
+                            if (!compressedBlob) {
+                                reject(new Error('压缩图片失败'));
+                                return;
+                            }
+                            
+                            console.log(`压缩后大小: ${(compressedBlob.size / 1024 / 1024).toFixed(2)}MB (质量: ${quality.toFixed(2)})`);
+                            
+                            // 如果达到目标大小或质量已经很低，返回结果
+                            if (compressedBlob.size <= targetSizeBytes || quality <= 0.3) {
+                                resolve(compressedBlob);
+                            } else {
+                                quality -= 0.1;
+                                tryCompress();
+                            }
+                        }, 'image/jpeg', quality);
+                    };
+                    
+                    tryCompress();
+                };
+                
+                img.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    reject(new Error('加载图片失败'));
+                };
+                
+                img.src = url;
+            });
+        }
+
+        // 将图片URL转换为Base64，同时检测MIME类型
+        async function urlToBase64WithMimeType(url) {
+            try {
+                const response = await fetch(url);
+                let blob = await response.blob();
+                
+                // 超过10MB才压缩，压缩目标为8MB
+                blob = await compressImageToSize(blob, 8, 10);
+
+                // 自动检测MIME类型
+                let mimeType = blob.type;
+                if (!mimeType || mimeType === 'application/octet-stream') {
+                    // 如果blob.type不可用，从URL推断
+                    const extension = url.split('.').pop().toLowerCase().split('?')[0];
+                    const mimeTypeMap = {
+                        'jpg': 'image/jpeg',
+                        'jpeg': 'image/jpeg',
+                        'png': 'image/png',
+                        'gif': 'image/gif',
+                        'webp': 'image/webp',
+                        'bmp': 'image/bmp'
+                    };
+                    mimeType = mimeTypeMap[extension] || 'image/jpeg';
+                }
+
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        const base64 = reader.result.split(',')[1];
+                        resolve({ base64, mimeType });
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            } catch (error) {
+                throw new Error(`转换图片失败: ${error.message}`);
+            }
+        }
+
+        function endGenerationTimer(cardId) {
+            const actualDuration = generationTimers.get(`duration_${cardId}`);
+            if (actualDuration !== undefined) {
+                generationTimers.delete(`duration_${cardId}`);
+                return actualDuration;
+            }
+            const startTime = generationTimers.get(cardId);
+            if (!startTime) return 0;
+            const duration = (Date.now() - startTime) / 1000;
+            generationTimers.delete(cardId);
+            return duration;
+        }
+
+        // ==================== 取消生成功能 ====================
+        function cancelGeneration(cardId) {
+            // 中断所有相关的 AbortController
+            // 因为一个API请求可能对应多个卡片，需要中断所有
+            const allControllers = Array.from(abortControllers.entries());
+            allControllers.forEach(([id, controller]) => {
+                controller.abort();
+                abortControllers.delete(id);
+            });
+
+            // 更新卡片状态
+            const card = document.querySelector(`.image-card[data-card-id="${cardId}"]`);
+            if (card) {
+                card.classList.remove('loading');
+                card.classList.add('cancelled');
+                const loadingText = card.querySelector('.loading-text');
+                const cancelBtn = card.querySelector('.loading-cancel-btn');
+                const spinner = card.querySelector('.loading-spinner');
+                if (loadingText) loadingText.textContent = '已暂停';
+                if (cancelBtn) cancelBtn.remove();
+                if (spinner) spinner.style.display = 'none';
+            }
+
+            // 同时更新所有正在加载的卡片状态
+            document.querySelectorAll('.image-card.loading').forEach(c => {
+                c.classList.remove('loading');
+                c.classList.add('cancelled');
+                const lt = c.querySelector('.loading-text');
+                const cb = c.querySelector('.loading-cancel-btn');
+                const sp = c.querySelector('.loading-spinner');
+                if (lt) lt.textContent = '已暂停';
+                if (cb) cb.remove();
+                if (sp) sp.style.display = 'none';
+            });
+
+            showToast('已暂停生成', 'warning');
+        }
+
+        // ==================== 卡片管理 ====================
+        function createImageCard(index, total, ratio) {
+            const galleryGrid = document.getElementById('galleryGrid');
+            const galleryEmpty = document.getElementById('galleryEmpty');
+
+            const ratioMap = {
+                '1:1': '1/1',
+                '3:4': '3/4',
+                '9:16': '9/16',
+                '16:9': '16/9'
+            };
+            const aspectRatio = ratioMap[ratio] || '9/16';
+
+            globalImageCounter++;
+            localStorage.setItem('clothingImageCounter', globalImageCounter);
+            
+            const cardId = globalImageCounter;
+            const card = document.createElement('div');
+            card.className = 'image-card loading';
+            card.dataset.cardId = cardId;
+            card.innerHTML = `
+                <div class="image-card-preview" style="aspect-ratio: ${aspectRatio}">
+                    <div class="loading-content">
+                        <div class="loading-spinner"></div>
+                        <div class="loading-text">生成中</div>
+                        <div class="loading-progress">${index}/${total}</div>
+                        <button class="loading-cancel-btn" onclick="cancelGeneration(${cardId})" title="暂停生成">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="6" y="4" width="4" height="16" rx="1"/>
+                                <rect x="14" y="4" width="4" height="16" rx="1"/>
+                            </svg>
+                            暂停
+                        </button>
+                    </div>
+                </div>
+                <div class="image-card-info">
+                    <div class="image-card-title">模特换装 #${String(cardId).padStart(3, '0')}</div>
+                    <div class="image-card-meta" style="display: flex; align-items: center; gap: 8px;">
+                        <span>${new Date().toLocaleString('zh-CN')}</span>
+                        <span class="generation-time" style="font-size: 11px; color: var(--primary); opacity: 0.8;">等待图片生成...</span>
+                    </div>
+                </div>
+            `;
+
+            galleryGrid.insertBefore(card, galleryGrid.firstChild);
+            galleryEmpty.style.display = 'none';
+            galleryGrid.style.display = 'grid';
+
+            return card;
+        }
+
+        async function updateImageCard(card, img, index) {
+            if (!card) return;
+            
+            // 如果已清空，不再更新卡片
+            if (isCleared) {
+                return;
+            }
+
+            // 如果卡片已被取消，不再更新
+            if (card.classList.contains('cancelled')) {
+                console.log('卡片已被取消，跳过更新');
+                return;
+            }
+
+            const previewDiv = card.querySelector('.image-card-preview');
+            const titleDiv = card.querySelector('.image-card-title');
+            const cardId = card.dataset.cardId;
+            const generationDuration = endGenerationTimer(cardId?.toString());
+
+            card.classList.remove('loading');
+            card.classList.add('completed');
+
+            const timeDiv = card.querySelector('.generation-time');
+            if (timeDiv) {
+                timeDiv.textContent = `| 生成耗时: ${generationDuration.toFixed(1)}秒`;
+                timeDiv.style.color = 'var(--success)';
+            }
+
+            const imageTitle = titleDiv ? titleDiv.textContent : `模特换装 #${String(globalImageCounter).padStart(3, '0')}`;
+
+            // 直接显示图片，不等待预加载
+            previewDiv.innerHTML = `
+                <img src="${img.url}" alt="生成的图片" onload="this.style.opacity='1'" onerror="this.style.opacity='0.5'" style="opacity: 0; transition: opacity 0.3s ease;">
+                <button class="image-card-delete" onclick="deleteImage('${img.url}')" title="删除"></button>
+                <div class="image-card-overlay">
+                    <div class="image-card-actions">
+                        <button class="card-action-btn" onclick="downloadImage('${img.url}')">下载</button>
+                        <button class="card-action-btn" onclick="favoriteImage('${img.url}', '${imageTitle}', '9:16')">收藏</button>
+                    </div>
+                </div>
+            `;
+
+            // 后台预加载缓存，不阻塞显示
+            preloadImage(img.url).catch(() => {});
+
+            setTimeout(() => {
+                card.classList.remove('completed');
+            }, 500);
+
+            const imageData = {
+                url: img.url,
+                title: imageTitle,
+                ratio: '9:16',
+                timestamp: new Date().toLocaleString('zh-CN')
+            };
+
+            const isAlreadyExists = allImages.some(existingImg => existingImg.url === img.url);
+            if (!isAlreadyExists) {
+                allImages.unshift(imageData);
+                localStorageCache.markDirty(STORAGE_KEY_ALL);
+            }
+
+            showToast(`第 ${index} 张图片生成完成！`, 'success');
+        }
+
+        // ==================== 生成按钮 ====================
+        const generateBtn = document.getElementById('generateBtn');
+        generateBtn.addEventListener('click', async () => {
+            const prompt = document.getElementById('clothingPrompt')?.value?.trim();
+            if (!prompt) {
+                showToast('请输入描述词', 'error');
+                return;
+            }
+
+            if (uploadData.clothingUpload.length === 0) {
+                showToast('请至少上传一张服装图片', 'error');
+                return;
+            }
+
+            if (uploadData.modelUpload.length === 0) {
+                showToast('请至少上传一张复刻图片', 'error');
+                return;
+            }
+
+            // 检查模型类型
+            const modelTypeBtn = document.querySelector('#modelType .option-btn.active');
+            const modelType = modelTypeBtn?.dataset?.model || 'domestic';
+
+            // 检查API密钥是否已加载（页面加载时应该已完成）
+            if (!apiKeysLoaded) {
+                showToast('配置正在加载中，请稍后再试', 'warning');
+                return;
+            }
+
+            // 检查API密钥是否已设置
+            if (modelType === 'domestic' && !userApiKeys.doubao) {
+                showToast('豆包API密钥未设置，请联系管理员', 'error');
+                return;
+            }
+            if (modelType === 'foreign' && !userApiKeys.google) {
+                showToast('谷歌API密钥未设置，请联系管理员', 'error');
+                return;
+            }
+
+            const qualityBtn = document.querySelector('#clothingQuality .option-btn.active');
+            const ratioBtn = document.querySelector('#clothingRatio .option-btn.active');
+
+            // 收集服装图片
+            const clothingImages = [];
+            uploadData.clothingUpload.forEach(img => {
+                if (img.src) {
+                    clothingImages.push(img.src);
+                }
+            });
+
+            // 收集复刻图片
+            const modelImages = [];
+            uploadData.modelUpload.forEach(img => {
+                if (img.src) {
+                    modelImages.push(img.src);
+                }
+            });
+
+            // 检查单张调用时的图片数量限制（1张服装图 + 1张复刻图 + 1张生成图 ≤ 限制）
+            const totalLimit = modelType === 'domestic' ? 15 : 12;
+            const perCallImageCount = 1 + 1 + 1; // 1张服装图 + 1张复刻图 + 1张生成结果
+            if (perCallImageCount > totalLimit) {
+                showToast(`${modelType === 'domestic' ? '国产' : '国外'}模型下单次调用图片总数不能超过${totalLimit}张`, 'error');
+                return;
+            }
+
+            const modelImageCount = modelImages.length;
+
+            showToast(`任务已添加到队列，将为 ${modelImageCount} 张复刻图分别生成服装复刻效果...`, 'success');
+
+            // 为每张复刻图创建卡片
+            const taskCards = [];
+            for (let i = 0; i < modelImageCount; i++) {
+                const card = createImageCard(i + 1, modelImageCount, ratioBtn?.dataset?.ratio || '9:16');
+                taskCards.push(card);
+            }
+
+            // 为每张复刻图分别调用API
+            setTimeout(async () => {
+                try {
+                    let successCount = 0;
+                    let failCount = 0;
+
+                    console.log('【调试】模型类型:', modelType, '复刻图数量:', modelImages.length);
+
+                    // 国外模型：并发处理，每张复刻图一个API调用（n=1）
+                    if (modelType === 'foreign') {
+                        console.log('【调试】进入国外模型分支，并发处理');
+                        
+                        // 创建所有任务
+                        const tasks = [];
+                        for (let i = 0; i < modelImages.length; i++) {
+                            const modelImage = modelImages[i];
+                            const card = taskCards[i];
+
+                            // 构建参考图片数组：服装图 + 当前复刻图
+                            const referenceImages = [clothingImages[0], modelImage];
+
+                            const params = {
+                                prompt: prompt,
+                                quality: qualityBtn?.dataset?.quality || '2k',
+                                ratio: ratioBtn?.dataset?.ratio || '9:16',
+                                referenceImages: referenceImages,
+                                imageCount: 1, // 每个API调用生成1张图
+                                taskCards: [card], // 只传入当前卡片
+                                modelType: modelType
+                            };
+
+                            tasks.push({ params, card, index: i });
+                        }
+
+                        console.log(`【国外模型】并发处理: 共${tasks.length}个任务，同时调用${tasks.length}个API`);
+
+                        // 并发执行所有任务
+                        const promises = tasks.map(task => 
+                            generationQueue.addTask(task.params)
+                                .then(result => {
+                                    if (result.data && result.data.length > 0) {
+                                        return { success: true, index: task.index };
+                                    } else {
+                                        return { success: false, index: task.index, error: '无返回数据' };
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error(`第 ${task.index + 1} 张复刻图生成失败:`, error);
+                                    updateImageCardError(task.card, error.message);
+                                    return { success: false, index: task.index, error };
+                                })
+                        );
+
+                        // 等待所有任务完成
+                        const results = await Promise.all(promises);
+                        
+                        successCount = results.filter(r => r.success).length;
+                        failCount = results.filter(r => !r.success).length;
+                        
+                        console.log(`【国外模型】全部完成: ${successCount} 成功, ${failCount} 失败`);
+                    } else {
+                        // 国内模型：保持原有逻辑，串行处理
+                        for (let i = 0; i < modelImages.length; i++) {
+                            const modelImage = modelImages[i];
+                            const card = taskCards[i];
+
+                            // 构建参考图片数组：服装图 + 当前复刻图
+                            const referenceImages = [clothingImages[0], modelImage];
+
+                            const params = {
+                                prompt: prompt,
+                                quality: qualityBtn?.dataset?.quality || '2k',
+                                ratio: ratioBtn?.dataset?.ratio || '9:16',
+                                referenceImages: referenceImages,
+                                imageCount: 1, // 每次只生成1张图
+                                taskCards: [card], // 只传入当前卡片
+                                modelType: modelType // 传递模型类型
+                            };
+
+                            try {
+                                const result = await generationQueue.addTask(params);
+                                if (result.data && result.data.length > 0) {
+                                    successCount++;
+                                } else {
+                                    failCount++;
+                                }
+                            } catch (error) {
+                                console.error(`第 ${i + 1} 张复刻图生成失败:`, error);
+                                failCount++;
+                                // 更新卡片为失败状态
+                                updateImageCardError(card, error.message);
+                            }
+                        }
+                    }
+
+                    if (successCount > 0) {
+                        showToast(`服装复刻效果生成完成！成功 ${successCount} 张${failCount > 0 ? `，失败 ${failCount} 张` : ''}`, 'success');
+                    } else {
+                        showToast('生成失败，请重试', 'error');
+                    }
+                } catch (error) {
+                    showToast(error.message || '生成失败，请重试', 'error');
+                }
+            }, 100);
+        });
+
+        // 更新卡片为错误状态
+        function updateImageCardError(card, errorMessage) {
+            if (!card) return;
+
+            card.classList.remove('loading');
+            card.classList.add('error');
+
+            const previewDiv = card.querySelector('.image-card-preview');
+            const timeDiv = card.querySelector('.generation-time');
+
+            if (timeDiv) {
+                timeDiv.textContent = '| 生成失败';
+                timeDiv.style.color = 'var(--danger)';
+            }
+
+            if (previewDiv) {
+                previewDiv.innerHTML = `
+                    <div class="loading-content">
+                        <div style="font-size: 32px; margin-bottom: 8px;">❌</div>
+                        <div class="loading-text">生成失败</div>
+                        <div class="loading-progress" style="font-size: 12px; color: var(--text-secondary);">${errorMessage || '请重试'}</div>
+                    </div>
+                `;
+            }
+        }
+
+        // ==================== 下载功能 ====================
+        async function downloadImage(url) {
+            try {
+                showToast('开始下载...', 'success');
+                const response = await fetch(url, { method: 'GET', mode: 'cors' });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const arrayBuffer = await response.arrayBuffer();
+                const bytes = new Uint8Array(arrayBuffer.slice(0, 8));
+                const isPNG = bytes[0] === 0x89 && bytes[1] === 0x50;
+                const isJPEG = bytes[0] === 0xFF && bytes[1] === 0xD8;
+                const isWebP = bytes[0] === 0x52 && bytes[1] === 0x49;
+                const ext = isPNG ? 'png' : isJPEG ? 'jpg' : isWebP ? 'webp' : 'bin';
+
+                const blob = new Blob([arrayBuffer], {
+                    type: response.headers.get('content-type') || `image/${ext}`
+                });
+
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = `clothing-${Date.now()}.${ext}`;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(blobUrl);
+                }, 100);
+
+                showToast(`下载成功 (${ext.toUpperCase()})`, 'success');
+            } catch (error) {
+                showToast('直接打开图片...', 'success');
+                window.open(url, '_blank');
+            }
+        }
+
+        async function downloadAllImages(images, prefix = '模特换装图片') {
+            if (!images || images.length === 0) {
+                showToast('没有可下载的图片', 'error');
+                return;
+            }
+
+            const MAX_CONCURRENT = 5;
+            const fileNameRegex = /[^\w\u4e00-\u9fa5]/g;
+
+            async function downloadSingleImage(img, index) {
+                const fileName = `${index}_${(img.title || `image_${index}`).replace(fileNameRegex, '_')}.png`;
+                try {
+                    const proxyUrl = `/api/download/proxy?url=${encodeURIComponent(img.url)}`;
+                    const response = await fetch(proxyUrl, { method: 'GET' });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const blob = await response.blob();
+                    return { success: true, fileName, blob, url: img.url };
+                } catch (error) {
+                    console.error(`下载失败: ${img.url}, 错误:`, error);
+                    return { success: false, fileName, url: img.url, error };
+                }
+            }
+
+            async function downloadWithConcurrency(items, concurrency) {
+                const results = [];
+                const executing = [];
+
+                for (const item of items) {
+                    const promise = downloadSingleImage(item.img, item.index).then(result => {
+                        executing.splice(executing.indexOf(promise), 1);
+                        return result;
+                    });
+
+                    results.push(promise);
+                    executing.push(promise);
+
+                    if (executing.length >= concurrency) {
+                        await Promise.race(executing);
+                    }
+                }
+
+                return Promise.all(results);
+            }
+
+            let zipUrl = null;
+            const downloadItems = images.map((img, i) => ({ img, index: images.length - i }));
+
+            try {
+                showToast(`正在并行下载 ${images.length} 张图片...`, 'success');
+                const downloadResults = await downloadWithConcurrency(downloadItems, MAX_CONCURRENT);
+
+                const zip = new JSZip();
+                let successCount = 0;
+                let failCount = 0;
+                let failedUrls = [];
+
+                downloadResults.forEach(result => {
+                    if (result.success) {
+                        zip.file(result.fileName, result.blob);
+                        successCount++;
+                        console.log(`成功添加: ${result.fileName}`);
+                    } else {
+                        failCount++;
+                        failedUrls.push(result.url);
+                    }
+                });
+
+                if (successCount === 0) {
+                    showToast('打包失败，所有图片都无法下载', 'error');
+                    console.error('所有图片下载失败，失败的URL:', failedUrls);
+                    return;
+                }
+
+                showToast('正在生成ZIP文件...', 'success');
+                const content = await zip.generateAsync({ 
+                    type: 'blob',
+                    compression: 'DEFLATE',
+                    compressionOptions: { level: 6 }
+                });
+                
+                try {
+                    zipUrl = window.URL.createObjectURL(content);
+                    const a = document.createElement('a');
+                    a.href = zipUrl;
+                    a.download = `${prefix}_${new Date().toISOString().slice(0, 10)}.zip`;
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+                    a.click();
+                } catch (downloadError) {
+                    console.error('下载触发失败:', downloadError);
+                    showToast('下载失败，请重试', 'error');
+                    return;
+                } finally {
+                    setTimeout(() => {
+                        if (zipUrl) {
+                            window.URL.revokeObjectURL(zipUrl);
+                            zipUrl = null;
+                        }
+                    }, 200);
+                }
+
+                if (failCount > 0) {
+                    console.warn(`部分图片下载失败 (${failCount}张):`, failedUrls);
+                    showToast(`成功打包 ${successCount} 张图片，${failCount} 张失败`, 'warning');
+                } else {
+                    showToast(`成功打包 ${successCount} 张图片`, 'success');
+                }
+            } catch (error) {
+                console.error('打包异常:', error);
+                showToast('打包失败: ' + error.message, 'error');
+            }
+        }
+
+        function downloadAll() {
+            const images = currentTab === 'favorite' ? favoriteImages : allImages;
+            const prefix = currentTab === 'favorite' ? '模特换装收藏' : '模特换装图片';
+            downloadAllImages(images, prefix);
+        }
+
+        // ==================== 收藏功能 ====================
+        function favoriteImage(url, title, ratio) {
+            const isAlreadyFavorited = favoriteImages.some(img => img.url === url);
+            if (isAlreadyFavorited) {
+                showToast('该图片已在收藏中', 'error');
+                return;
+            }
+            
+            const imageData = {
+                url: url,
+                title: title || `模特换装 #${String(globalImageCounter).padStart(3, '0')}`,
+                ratio: ratio || '9:16',
+                timestamp: new Date().toLocaleString('zh-CN')
+            };
+            
+            favoriteImages.unshift(imageData);
+            localStorageCache.markDirty(STORAGE_KEY_FAVORITE);
+            showToast('已收藏', 'success');
+            
+            if (currentTab === 'favorite') {
+                renderGallery(favoriteImages);
+            } else {
+                renderGallery(allImages);
+            }
+        }
+
+        function unfavoriteImage(url) {
+            const initialLength = favoriteImages.length;
+            favoriteImages = favoriteImages.filter(img => img.url !== url);
+            localStorageCache.markDirty(STORAGE_KEY_FAVORITE);
+            
+            if (favoriteImages.length < initialLength) {
+                showToast('已取消收藏', 'success');
+                if (currentTab === 'favorite') {
+                    renderGallery(favoriteImages);
+                } else {
+                    renderGallery(allImages);
+                }
+            }
+        }
+
+        // ==================== 删除图片功能 ====================
+        function deleteImage(url) {
+            allImages = allImages.filter(img => img.url !== url);
+            favoriteImages = favoriteImages.filter(img => img.url !== url);
+            localStorageCache.markDirty(STORAGE_KEY_ALL);
+            localStorageCache.markDirty(STORAGE_KEY_FAVORITE);
+            showToast('图片已删除', 'success');
+            if (currentTab === 'favorite') {
+                renderGallery(favoriteImages);
+            } else {
+                renderGallery(allImages);
+            }
+        }
+
+        // ==================== 标签切换 ====================
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTab = btn.dataset.tab;
+                
+                if (currentTab === 'all') {
+                    renderGallery(allImages);
+                } else {
+                    renderGallery(favoriteImages);
+                }
+            });
+        });
+
+        // ==================== 渲染图片网格 ====================
+        function renderGallery(images) {
+            const galleryGrid = document.getElementById('galleryGrid');
+            const galleryEmpty = document.getElementById('galleryEmpty');
+            
+            const loadingCards = Array.from(galleryGrid.querySelectorAll('.image-card.loading'));
+            
+            if (images.length === 0 && loadingCards.length === 0) {
+                galleryGrid.style.display = 'none';
+                galleryEmpty.style.display = 'flex';
+            } else {
+                galleryGrid.style.display = 'grid';
+                galleryEmpty.style.display = 'none';
+                
+                galleryGrid.innerHTML = '';
+                
+                loadingCards.forEach(card => {
+                    galleryGrid.appendChild(card);
+                });
+                
+                images.forEach((img) => {
+                    const ratioMap = {
+                        '1:1': '1/1',
+                        '3:4': '3/4',
+                        '9:16': '9/16',
+                        '16:9': '16/9'
+                    };
+                    const aspectRatio = ratioMap[img.ratio] || '9/16';
+                    
+                    const card = document.createElement('div');
+                    card.className = 'image-card';
+                    
+                    const isFavoriteTab = currentTab === 'favorite';
+                    const isFavorited = favoriteImages.some(favImg => favImg.url === img.url);
+                    
+                    let favoriteButtonHTML;
+                    if (isFavoriteTab) {
+                        favoriteButtonHTML = `<button class="card-action-btn" onclick="unfavoriteImage('${img.url}')">取消收藏</button>`;
+                    } else if (isFavorited) {
+                        favoriteButtonHTML = `<button class="card-action-btn" style="background: linear-gradient(145deg, rgba(0, 214, 143, 0.3) 0%, rgba(0, 179, 119, 0.2) 100%); color: var(--primary); cursor: default;">已收藏</button>`;
+                    } else {
+                        favoriteButtonHTML = `<button class="card-action-btn" onclick="favoriteImage('${img.url}', '${img.title}', '${img.ratio}')">收藏</button>`;
+                    }
+                    
+                    card.innerHTML = `
+                        <div class="image-card-preview" style="aspect-ratio: ${aspectRatio}">
+                            <img data-src="${img.url}" alt="${img.title}" loading="lazy" style="opacity: 0; transition: opacity 0.3s ease;">
+                            <button class="image-card-delete" onclick="deleteImage('${img.url}')" title="删除"></button>
+                            <div class="image-card-overlay">
+                                <div class="image-card-actions">
+                                    <button class="card-action-btn" onclick="downloadImage('${img.url}')">下载</button>
+                                    ${favoriteButtonHTML}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="image-card-info">
+                            <div class="image-card-title">${img.title}</div>
+                            <div class="image-card-meta">${img.timestamp}</div>
+                        </div>
+                    `;
+                    galleryGrid.appendChild(card);
+                    observeLazyImage(card.querySelector('img'));
+                });
+            }
+        }
+
+        // ==================== 清空功能 ====================
+        function clearAll() {
+            const targetName = currentTab === 'all' ? '全部图片' : '收藏图片';
+            
+            const modal = document.createElement('div');
+            modal.className = 'confirm-modal';
+            modal.innerHTML = `
+                <div class="confirm-modal-overlay"></div>
+                <div class="confirm-modal-content">
+                    <div class="confirm-modal-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                    </div>
+                    <div class="confirm-modal-title">确认清空</div>
+                    <div class="confirm-modal-message">您确定要清空${targetName}吗？</div>
+                    <div class="confirm-modal-buttons">
+                        <button class="confirm-modal-btn cancel" id="modalCancel">取消</button>
+                        <button class="confirm-modal-btn confirm" id="modalConfirm">确定</button>
+                    </div>
+                </div>
+            `;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                .confirm-modal {
+                    position: fixed;
+                    inset: 0;
+                    z-index: 9999;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .confirm-modal-overlay {
+                    position: absolute;
+                    inset: 0;
+                    background: rgba(0, 0, 0, 0.7);
+                    backdrop-filter: blur(4px);
+                }
+                .confirm-modal-content {
+                    position: relative;
+                    background: linear-gradient(145deg, #1a1a1a 0%, #141414 100%);
+                    border: 1px solid #333;
+                    border-radius: 16px;
+                    padding: 32px;
+                    text-align: center;
+                    min-width: 320px;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                    animation: modalSlideIn 0.3s ease;
+                }
+                @keyframes modalSlideIn {
+                    from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
+                }
+                .confirm-modal-icon { color: #faad14; margin-bottom: 16px; }
+                .confirm-modal-title { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+                .confirm-modal-message { font-size: 14px; color: #a0a0a0; margin-bottom: 24px; line-height: 1.5; }
+                .confirm-modal-buttons { display: flex; gap: 12px; justify-content: center; }
+                .confirm-modal-btn {
+                    padding: 10px 24px;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    border: none;
+                }
+                .confirm-modal-btn.cancel { background: #262626; color: #a0a0a0; }
+                .confirm-modal-btn.cancel:hover { background: #333; color: #fff; }
+                .confirm-modal-btn.confirm {
+                    background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+                    color: #fff;
+                }
+                .confirm-modal-btn.confirm:hover {
+                    background: linear-gradient(135deg, #ff7875 0%, #ff4d4f 100%);
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(255, 77, 79, 0.3);
+                }
+            `;
+            
+            document.head.appendChild(style);
+            document.body.appendChild(modal);
+            
+            document.getElementById('modalCancel').addEventListener('click', () => {
+                document.body.removeChild(modal);
+                document.head.removeChild(style);
+            });
+            
+            document.getElementById('modalConfirm').addEventListener('click', () => {
+                const galleryGrid = document.getElementById('galleryGrid');
+                const galleryEmpty = document.getElementById('galleryEmpty');
+                
+                // 设置清空标志，阻止后续生成任务添加图片
+                isCleared = true;
+                // 清空生成队列
+                generationQueue.clear();
+                // 清空图片预加载缓存
+                imagePreloadCache.clear();
+                
+                if (currentTab === 'all') {
+                    allImages = [];
+                    localStorageCache.markDirty(STORAGE_KEY_ALL);
+                    localStorageCache.forceFlush();
+                    galleryGrid.innerHTML = '';
+                    galleryEmpty.style.display = 'flex';
+                    galleryGrid.style.display = 'none';
+                    showToast('已清空全部图片');
+                } else {
+                    favoriteImages = [];
+                    localStorageCache.markDirty(STORAGE_KEY_FAVORITE);
+                    localStorageCache.forceFlush();
+                    galleryGrid.innerHTML = '';
+                    if (allImages.length === 0) {
+                        galleryEmpty.style.display = 'flex';
+                        galleryGrid.style.display = 'none';
+                    } else {
+                        currentTab = 'all';
+                        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                        document.querySelector('[data-tab="all"]').classList.add('active');
+                        renderGallery(allImages);
+                    }
+                    showToast('已清空收藏图片');
+                }
+                
+                // 延迟重置清空标志，允许新的生成任务
+                setTimeout(() => {
+                    isCleared = false;
+                }, 500);
+
+                document.body.removeChild(modal);
+                document.head.removeChild(style);
+            });
+            
+            modal.querySelector('.confirm-modal-overlay').addEventListener('click', () => {
+                document.body.removeChild(modal);
+                document.head.removeChild(style);
+            });
+            
+            const escHandler = (e) => {
+                if (e.key === 'Escape') {
+                    document.body.removeChild(modal);
+                    document.head.removeChild(style);
+                    document.removeEventListener('keydown', escHandler);
+                }
+            };
+            document.addEventListener('keydown', escHandler);
+        }
+
+        // ==================== 提示消息 ====================
+        function showToast(message, type = '') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast' + (type ? ' ' + type : '');
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ==================== 页面加载时渲染 ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            renderGallery(allImages);
+        });
+    </script>
+</body>
+</html>

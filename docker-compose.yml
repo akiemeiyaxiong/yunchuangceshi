@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: yunchuang-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/html:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - yunchuang-network
+
+  backend:
+    build: ./server
+    container_name: yunchuang-backend
+    expose:
+      - "3000"
+    env_file:
+      - ./server/.env
+    restart: unless-stopped
+    networks:
+      - yunchuang-network
+
+networks:
+  yunchuang-network:
+    driver: bridge
