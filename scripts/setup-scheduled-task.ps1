@@ -2,7 +2,7 @@
 # 创建每天19点自动提交的任务
 
 $taskName = "YunChuang-AI-AutoCommit"
-$scriptPath = "F:\服务器代码-云创网站\服务器代码-云创网站\trae\YunChuang-AI\scripts\auto-commit.ps1"
+$scriptPath = "F:\服务器代码-云创网站\服务器代码-云创网站\trae\YunChuang-AI\scripts\auto-commit-with-changelog.ps1"
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  云创AI - 定时任务设置" -ForegroundColor Cyan
